@@ -1,0 +1,46 @@
+{
+  "name": "bot",
+  "version": "1.0.0",
+  "description": "",
+  "proxy": "http://localhost:5000",
+  "main": "index.js",
+  "scripts": {
+    "start": "nod index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@telegraf/session": "^2.0.0-beta.6",
+    "abushakir": "^1.2.1",
+    "axios": "^1.4.0",
+    "cloudinary": "^1.40.0",
+    "consola": "^3.2.3",
+    "cors": "^2.8.5",
+    "http": "^0.0.1-security",
+    "i18next": "^23.5.1",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.4",
+    "mongodb": "^6.3.0",
+    "nodemon": "^2.0.22",
+    "numeral": "^2.0.6",
+    "pm2": "^5.3.0",
+    "redis": "^4.6.8",
+    "sharp": "^0.32.5",
+    "telegraf": "^4.14.0",
+    "telegraf-i18next": "^5.0.0",
+    "telegraf-pagination": "^1.4.1",
+    "telegraf-session-local": "^2.1.1",
+    "telegraf-session-mongodb": "^2.0.2"
+  },
+  "engines": {
+    "node": "16.16.0"
+  },
+  "devDependencies": {
+    "@telegraf/types": "^6.9.1",
+    "@types/node": "^20.10.3",
+    "typescript": "^5.3.2"
+  }
+}

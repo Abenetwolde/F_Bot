@@ -1,0 +1,15 @@
+{
+    "wellcomemessage":"Welcome to our ecommerce bot! You can browse our products by category or search for specific items. You can also check out our latest and most popular products.",
+    "greeting": "Hello",
+    "farewell": "Goodbye",
+    "changeLanguage":"changeLanguageE",
+    "Latest":"Latest",
+    "Popular":"Popular",
+    "Home":"Home",
+    "Category":"Category",
+    "Search":"Search",
+    "cart":"My Cart",
+    "order":"My Order",
+    "Language":"Language"
+
+  }

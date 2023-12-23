@@ -1,0 +1,352 @@
+{
+  "sessions": [
+    {
+      "id": "5998050230:5998050230",
+      "data": {
+        "__scenes": {
+          "current": "homeScene",
+          "state": {}
+        },
+        "messages": [],
+        "cleanUpState": [
+          {
+            "id": 20557,
+            "type": "home"
+          }
+        ],
+        "shouldContinueSending": true,
+        "currentImageIndex": {},
+        "viewMore": {},
+        "quantity": {},
+        "currentPage": 1,
+        "cart": [],
+        "products": [
+          {
+            "_id": "64f08440d7df1c7bed29a846",
+            "name": "Product 1",
+            "description": "This is an example product description.",
+            "highlights": [],
+            "specifications": [
+              {
+                "title": "Specification 1",
+                "description": "This is the description for specification 1.",
+                "_id": "64f08440d7df1c7bed29a847"
+              },
+              {
+                "title": "Specification 2",
+                "description": "This is the description for specification 2.",
+                "_id": "64f08440d7df1c7bed29a848"
+              }
+            ],
+            "price": 100,
+            "images": [
+              "https://th.bing.com/th/id/OIP.vf3_5IN5FPgIQa-6m35GUgHaLH?pid=ImgDet&rs=1",
+              "https://beanthere.co.za/wp-content/uploads/2014/03/BT-BAGS-Decaf-Beans-450x450.jpg"
+            ],
+            "category": {
+              "_id": "64ecaad1b7b5cd7dabd5ab12",
+              "name": "PLants",
+              "icon": "👖",
+              "__v": 0
+            },
+            "warranty": 1,
+            "countInStock": 20,
+            "createdAt": "2023-08-31T12:14:56.836Z",
+            "__v": 0,
+            "quantity": 0
+          },
+          {
+            "_id": "64f084e1d7df1c7bed29a84f",
+            "name": "Product 2",
+            "description": "This is an example product description.",
+            "highlights": [],
+            "specifications": [
+              {
+                "title": "Specification 1",
+                "description": "This is the description for specification 1.",
+                "_id": "64f084e1d7df1c7bed29a850"
+              },
+              {
+                "title": "Specification 2",
+                "description": "This is the description for specification 2.",
+                "_id": "64f084e1d7df1c7bed29a851"
+              }
+            ],
+            "price": 100,
+            "images": [
+              "https://cdn2.vox-cdn.com/thumbor/XVVzfrryqamgoMbDsPNCHPLqm8k=/1200x0/filters:no_upscale()/cdn3.vox-cdn.com/uploads/chorus_asset/file/7524141/untitled-1173.0.jpeg",
+              "https://img.hoodline.com/uploads/story/image/340284/damnyou.jpg",
+              "https://rs-menus-api.roocdn.com/images/39ba35cd-847e-4ae7-b2d4-1814d9cb8668/image.jpeg?width=1200&height=630&auto=webp&format=jpg&fit=crop&v="
+            ],
+            "category": {
+              "_id": "64ecaad1b7b5cd7dabd5ab12",
+              "name": "PLants",
+              "icon": "👖",
+              "__v": 0
+            },
+            "warranty": 1,
+            "countInStock": 20,
+            "createdAt": "2023-08-31T12:17:37.006Z",
+            "__v": 0,
+            "quantity": 0
+          },
+          {
+            "_id": "64f08607d7df1c7bed29a85a",
+            "name": "Product 3",
+            "description": "This is an example product description.",
+            "highlights": [],
+            "specifications": [
+              {
+                "title": "Specification 1",
+                "description": "This is the description for specification 1.",
+                "_id": "64f08607d7df1c7bed29a85b"
+              },
+              {
+                "title": "Specification 2",
+                "description": "This is the description for specification 2.",
+                "_id": "64f08607d7df1c7bed29a85c"
+              }
+            ],
+            "price": 100,
+            "images": [
+              "https://th.bing.com/th/id/R.4f0cbcec8ca81c26d417538a61d8571a?rik=059enTiu3qITtg&pid=ImgRaw&r=0",
+              "https://cdnprod.mafretailproxy.com/sys-master-root/hf3/h9e/26415975235614/650869_main.jpg_480Wx480H",
+              "https://rs-menus-api.roocdn.com/images/39ba35cd-847e-4ae7-b2d4-1814d9cb8668/image.jpeg?width=1200&height=630&auto=webp&format=jpg&fit=crop&v="
+            ],
+            "category": {
+              "_id": "64ecaad1b7b5cd7dabd5ab12",
+              "name": "PLants",
+              "icon": "👖",
+              "__v": 0
+            },
+            "warranty": 1,
+            "countInStock": 20,
+            "createdAt": "2023-08-31T12:22:31.297Z",
+            "__v": 0,
+            "quantity": 0
+          }
+        ],
+        "page": 1,
+        "totalPages": 2,
+        "totalNumberProducts": 6
+      }
+    },
+    {
+      "id": "2126443079:2126443079",
+      "data": {
+        "__scenes": {
+          "current": "homeScene",
+          "state": {}
+        },
+        "messages": [],
+        "cleanUpState": [
+          {
+            "id": 20464,
+            "type": "home"
+          }
+        ],
+        "shouldContinueSending": true,
+        "currentImageIndex": {
+          "64f8823b854893acf41c56f5": 0,
+          "64f08ba2cc86b0dadaf22763": 0,
+          "64f08651d7df1c7bed29a85f": 0,
+          "64f08607d7df1c7bed29a85a": 0,
+          "64f084e1d7df1c7bed29a84f": 0
+        },
+        "viewMore": {
+          "64f8823b854893acf41c56f5": false,
+          "64f08ba2cc86b0dadaf22763": false,
+          "64f08651d7df1c7bed29a85f": false,
+          "64f08607d7df1c7bed29a85a": false,
+          "64f084e1d7df1c7bed29a84f": true
+        },
+        "quantity": {},
+        "currentPage": 1,
+        "cart": [],
+        "products": [
+          {
+            "_id": "64f8823b854893acf41c56f5",
+            "name": "Product 5",
+            "description": "This is an example product description.",
+            "highlights": [],
+            "specifications": [
+              {
+                "title": "Specification 1",
+                "description": "This is the description for specification 1.",
+                "_id": "64f8823b854893acf41c56f6"
+              },
+              {
+                "title": "Specification 2",
+                "description": "This is the description for specification 2.",
+                "_id": "64f8823b854893acf41c56f7"
+              }
+            ],
+            "price": 100,
+            "images": [
+              "https://res.cloudinary.com/abmanwolde/image/upload/v1694007866/products/qencxaywaf0muf9qycfn.jpg",
+              "https://res.cloudinary.com/abmanwolde/image/upload/v1694007868/products/jlg1c4dva1g6dywcyetw.jpg"
+            ],
+            "category": {
+              "_id": "64f08b64cc86b0dadaf2275f",
+              "name": "shoe",
+              "icon": "👟",
+              "__v": 0
+            },
+            "warranty": 1,
+            "countInStock": 10,
+            "createdAt": "2023-09-06T13:44:27.009Z",
+            "__v": 0,
+            "quantity": 0
+          },
+          {
+            "_id": "64f08ba2cc86b0dadaf22763",
+            "name": "Product 5",
+            "description": "This is an example product description.",
+            "highlights": [],
+            "specifications": [
+              {
+                "title": "Specification 1",
+                "description": "This is the description for specification 1.",
+                "_id": "64f08ba2cc86b0dadaf22764"
+              },
+              {
+                "title": "Specification 2",
+                "description": "This is the description for specification 2.",
+                "_id": "64f08ba2cc86b0dadaf22765"
+              }
+            ],
+            "price": 100,
+            "images": [
+              "https://th.bing.com/th/id/R.964c2e66c349f5fbfd0c1ce7c126d6fe?rik=5R1B7FVdAOB2Mg&riu=http%3a%2f%2fwww.wondersofnature.ca%2fuploads%2f4%2f5%2f4%2f9%2f45497707%2fs396228126572194182_p634_i73_w403.jpeg&ehk=%2f9SI6XzR2dJELlDZ5C0RGzJD60iGcnXa49gKXxhoVyM%3d&risl=&pid=ImgRaw&r=0",
+              "https://rs-menus-api.roocdn.com/images/39ba35cd-847e-4ae7-b2d4-1814d9cb8668/image.jpeg?width=1200&height=630&auto=webp&format=jpg&fit=crop&v="
+            ],
+            "category": {
+              "_id": "64f08b64cc86b0dadaf2275f",
+              "name": "shoe",
+              "icon": "👟",
+              "__v": 0
+            },
+            "warranty": 1,
+            "countInStock": 10,
+            "createdAt": "2023-08-31T12:46:26.398Z",
+            "__v": 0,
+            "quantity": 0
+          },
+          {
+            "_id": "64f08651d7df1c7bed29a85f",
+            "name": "Product 4",
+            "description": "This is an example product description.",
+            "highlights": [],
+            "specifications": [
+              {
+                "title": "Specification 1",
+                "description": "This is the description for specification 1.",
+                "_id": "64f08651d7df1c7bed29a860"
+              },
+              {
+                "title": "Specification 2",
+                "description": "This is the description for specification 2.",
+                "_id": "64f08651d7df1c7bed29a861"
+              }
+            ],
+            "price": 100,
+            "images": [
+              "https://d1dllhfo4523g0.cloudfront.net/349203_MzAwLTU0Mi04YWMyYTIzMzc5.jpg",
+              "https://th.bing.com/th/id/R.964c2e66c349f5fbfd0c1ce7c126d6fe?rik=5R1B7FVdAOB2Mg&riu=http%3a%2f%2fwww.wondersofnature.ca%2fuploads%2f4%2f5%2f4%2f9%2f45497707%2fs396228126572194182_p634_i73_w403.jpeg&ehk=%2f9SI6XzR2dJELlDZ5C0RGzJD60iGcnXa49gKXxhoVyM%3d&risl=&pid=ImgRaw&r=0",
+              "https://rs-menus-api.roocdn.com/images/39ba35cd-847e-4ae7-b2d4-1814d9cb8668/image.jpeg?width=1200&height=630&auto=webp&format=jpg&fit=crop&v="
+            ],
+            "category": {
+              "_id": "64ecaad1b7b5cd7dabd5ab12",
+              "name": "PLants",
+              "icon": "👖",
+              "__v": 0
+            },
+            "warranty": 1,
+            "countInStock": 20,
+            "createdAt": "2023-08-31T12:23:45.500Z",
+            "__v": 0,
+            "quantity": 0
+          },
+          {
+            "_id": "64f08607d7df1c7bed29a85a",
+            "name": "Product 3",
+            "description": "This is an example product description.",
+            "highlights": [],
+            "specifications": [
+              {
+                "title": "Specification 1",
+                "description": "This is the description for specification 1.",
+                "_id": "64f08607d7df1c7bed29a85b"
+              },
+              {
+                "title": "Specification 2",
+                "description": "This is the description for specification 2.",
+                "_id": "64f08607d7df1c7bed29a85c"
+              }
+            ],
+            "price": 100,
+            "images": [
+              "https://th.bing.com/th/id/R.4f0cbcec8ca81c26d417538a61d8571a?rik=059enTiu3qITtg&pid=ImgRaw&r=0",
+              "https://cdnprod.mafretailproxy.com/sys-master-root/hf3/h9e/26415975235614/650869_main.jpg_480Wx480H",
+              "https://rs-menus-api.roocdn.com/images/39ba35cd-847e-4ae7-b2d4-1814d9cb8668/image.jpeg?width=1200&height=630&auto=webp&format=jpg&fit=crop&v="
+            ],
+            "category": {
+              "_id": "64ecaad1b7b5cd7dabd5ab12",
+              "name": "PLants",
+              "icon": "👖",
+              "__v": 0
+            },
+            "warranty": 1,
+            "countInStock": 20,
+            "createdAt": "2023-08-31T12:22:31.297Z",
+            "__v": 0,
+            "quantity": 0
+          },
+          {
+            "_id": "64f084e1d7df1c7bed29a84f",
+            "name": "Product 2",
+            "description": "This is an example product description.",
+            "highlights": [],
+            "specifications": [
+              {
+                "title": "Specification 1",
+                "description": "This is the description for specification 1.",
+                "_id": "64f084e1d7df1c7bed29a850"
+              },
+              {
+                "title": "Specification 2",
+                "description": "This is the description for specification 2.",
+                "_id": "64f084e1d7df1c7bed29a851"
+              }
+            ],
+            "price": 100,
+            "images": [
+              "https://cdn2.vox-cdn.com/thumbor/XVVzfrryqamgoMbDsPNCHPLqm8k=/1200x0/filters:no_upscale()/cdn3.vox-cdn.com/uploads/chorus_asset/file/7524141/untitled-1173.0.jpeg",
+              "https://img.hoodline.com/uploads/story/image/340284/damnyou.jpg",
+              "https://rs-menus-api.roocdn.com/images/39ba35cd-847e-4ae7-b2d4-1814d9cb8668/image.jpeg?width=1200&height=630&auto=webp&format=jpg&fit=crop&v="
+            ],
+            "category": {
+              "_id": "64ecaad1b7b5cd7dabd5ab12",
+              "name": "PLants",
+              "icon": "👖",
+              "__v": 0
+            },
+            "warranty": 1,
+            "countInStock": 20,
+            "createdAt": "2023-08-31T12:17:37.006Z",
+            "__v": 0,
+            "quantity": 0
+          }
+        ],
+        "page": 1,
+        "totalPages": 2,
+        "totalNumberProducts": 6,
+        "timeout": [],
+        "isWaiting": {
+          "status": true,
+          "note": "Home"
+        }
+      }
+    }
+  ]
+}
