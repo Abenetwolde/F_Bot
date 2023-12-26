@@ -6,39 +6,10 @@ const searchProduct = new Scenes.BaseScene('searchProduct');
 const itemsPerPage = 10;
 const apiUrl = " http://localhost:5000"
 // Dummy data for products
-const products = [
-  {
-    id: 1,
-    name: 'Product 11',
-    description: 'This is the description for Product 1.',
-    images: [
-      "https://th.bing.com/th/id/OIP.K8piq_1Rl_AyeNbcDyPpPgAAAA?pid=ImgDet&rs=1",
-      "https://th.bing.com/th/id/OIP.y7QJCUnLeQFDE2FXeXH_CwHaHa?pid=ImgDet&rs=1"
-    ]
-  },
-  {
-    id: 2123,
-    name: 'Product 3',
-    description: 'This is the description for Product 2.',
-    images: [
-      "https://th.bing.com/th/id/OIP.y7QJCUnLeQFDE2FXeXH_CwHaHa?pid=ImgDet&rs=1",
-      "https://th.bing.com/th/id/OIP.y7QJCUnLeQFDE2FXeXH_CwHaHa?pid=ImgDet&rs=1"
-    ]
-  },
-  // Add more products as needed...
-];
-const generateProductDetailsReply = (product) => {
-  // You can customize this message format based on your needs
-  return `
-    <b>${product.name}</b>
-    Description: ${product.description}
-    Images:
-    ${product.images.map(image => `<a href="${image}">&#8205;</a>`).join('\n')}
-  `;
-};
-const pageSize = 10
-const chosenResults = {};
+
+
 searchProduct.enter(async (ctx) => {
+  ctx.session.viewMoreSearch=null
   console.log("reach serach scene")
   let message = `
 Type the Product Name to search
@@ -59,67 +30,67 @@ Example @testecommerce12bot Prodcut name
 
 });
 // Handle inline queries within the scene
- searchProduct.on('inline_query', async (ctx) => {
+searchProduct.on('inline_query', async (ctx) => {
   console.log("inline_query")
   let input = ctx.inlineQuery.query
-    if (!input) {
-      return;
-    }
+  if (!input) {
+    return;
+  }
 
-    try {
-          // Extract pagination parameters from the inline query offset
+  try {
+    // Extract pagination parameters from the inline query offset
     // const offset = parseInt(ctx.inlineQuery.offset) || 0;
     // const page = Math.floor(offset / pageSize) + 1;
-      // Fetch product data from the backend API
-      const response = await axios.get('http://localhost:5000/api/getproducts', {
-        params: {
-          search: input,
-          // page: page,
-          pageSize: 10,
-          // Add any other query parameters as needed
+    // Fetch product data from the backend API
+    const response = await axios.get('http://localhost:5000/api/getproducts', {
+      params: {
+        search: input,
+        // page: page,
+        pageSize: 10,
+        // Add any other query parameters as needed
+      },
+    });
+
+    const products = response.data.products;
+    const totalPages = response.data.totalPages;
+    // Map the fetched products to Telegram inline query results
+    const results = products.map((product) => {
+      const thumbnail = product.images[0];
+
+      return {
+        type: 'article',
+        title: product.name,
+        photo_url: String(thumbnail),
+        thumb_url: String(thumbnail),
+        description: product.description,
+        id: String(product._id),
+        input_message_content: {
+          message_text: `${product.name && product.name}\n product.description,<a href="${thumbnail}">&#8205;</a>`,
+          parse_mode: "HTML",
         },
-      });
-  
-      const products = response.data.products;
-      const totalPages = response.data.totalPages;
-      // Map the fetched products to Telegram inline query results
-      const results = products.map((product) => {
-        const thumbnail = product.images[0];
-  
-        return {
-          type: 'article',
-          title: product.name,
-          photo_url: String(thumbnail),
-          thumb_url: String(thumbnail),
-          description: product.description,
-          id: String(product._id),
-          input_message_content: {
-            message_text: `${product.name&&product.name}\n product.description,<a href="${thumbnail}">&#8205;</a>`,
-            parse_mode: "HTML",
-          },
-          reply_markup: {
-            inline_keyboard: [
-              [
-                {
-                  text: 'View More',
-                  callback_data: `view_more_${product._id}`,
-                },
-                {
-                  text: 'Buy',
-                  callback_data: `Buy_${product._id}`,
-                },
-              ],
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: 'View More',
+                callback_data: `view_more_${product._id}`,
+              },
+              {
+                text: 'Buy',
+                callback_data: `Buy_${product._id}`,
+              },
             ],
-          },
-        };
-      });
-      // let nextOffset = null;
-      // if (page < totalPages) {
-      //   nextOffset = page * pageSize;
-      // }
-  
-        // Calculate the next offset for pagination
-        // const nextOffset = page * pageSize;
+          ],
+        },
+      };
+    });
+    // let nextOffset = null;
+    // if (page < totalPages) {
+    //   nextOffset = page * pageSize;
+    // }
+
+    // Calculate the next offset for pagination
+    // const nextOffset = page * pageSize;
 
     // Send the inline query results with pagination parameters
     await ctx.answerInlineQuery(results, {
@@ -127,133 +98,99 @@ Example @testecommerce12bot Prodcut name
       // next_offset: nextOffset !== null ? nextOffset.toString() : '',
 
     });
-    } catch (error) {
-      console.error('Error fetching product data:', error);
-    }
-  });
+  } catch (error) {
+    console.error('Error fetching product data:', error);
+  }
+});
 
+const productQuantityState = new Map();
+async function sendOrEditMessage(ctx, productId, product) {
+  const totalPrice = product.quantity * product.price;
+  const messageText = `${product.name}\n${product.description}\nQuantity: ${product.quantity}\nTotal Price: ${totalPrice}`;
 
+  if (ctx.session.viewMoreSearch) {
+    // Edit the existing message
+    const editedMessage = await ctx.telegram.editMessageText(
+      ctx.from.id,
+      ctx.session.viewMoreSearch,
+      null,
+      messageText,
+      Markup.inlineKeyboard([
+        Markup.button.callback('Remove Quantity', `removeQuantity_${productId}`),
+        Markup.button.callback('Add Quantity', `addQuantity_${productId}`),
+        Markup.button.callback('Buy', `addQuantity_${productId}`),
+      ])
+    );
 
-// searchProduct.on('chosen_inline_result', async (ctx) => {
+    ctx.session.viewMoreSearch = editedMessage.message_id;
+  } else {
+    // Send a new message
+    const newMessage = await ctx.telegram.sendMessage(
+      ctx.from.id,
+      messageText,
+      Markup.inlineKeyboard([
+        Markup.button.callback('Remove Quantity', `removeQuantity_${productId}`),
+        Markup.button.callback('Add Quantity', `addQuantity_${productId}`),
+        Markup.button.callback('Buy', `addQuantity_${productId}`),
+      ])
+    );
 
-// const inlineMessageId = ctx.chosenInlineResult.inline_message_id;
-//   console.log('Inline Message ID:', inlineMessageId);
-
-//   // Delete the message using the inline message ID
-//   setTimeout(async () => { 
-//     // Edit the inline message with an empty message to clear it
-//     try {
-//       await ctx.telegram.deleteMessage(ctx.from.id, inlineMessageId);
-//       console.log('Inline message cleared.');
-//     } catch (error) {
-//       console.error('Error editing inline message:', error.description);
-//     }
-//   }, 2000);
-
-// const resultId = ctx.chosenInlineResult.result_id;
-// const selectedProduct = products.find(product => String(product.id) === resultId);
-
-//  const mediaGroup = selectedProduct.images.map(image => ({
-//   type: 'photo',
-//   media: image,
-//   message: "usaydu",
-
-
-// } ));
-
-// await ctx.telegram.sendMediaGroup(ctx.from.id, mediaGroup);
-// await ctx.telegram.sendMessage(
-//   ctx.from.id,
-//   selectedProduct.description
-// );
-
-// // await ctx.telegram.sendPhoto(ctx.from.id, image, {
-// //   caption: selectedProduct.description,
-// // });
-// // await ctx.telegram.sendPhoto(
-// //   ctx.from.id,
-// //   selectedProduct.images[0],
-// //   {
-// //     caption: selectedProduct.description,
-// //   }
-// // );
-// // await ctx.telegram.replyWithMediaGroup(
-// //   ctx.from.id,[
-// //   {
-// //     type: 'photo',
-// //     media:  "https://th.bing.com/th/id/OIP.K8piq_1Rl_AyeNbcDyPpPgAAAA?pid=ImgDet&rs=1", // Replace with the actual image URL
-// //     caption: 'Caption for Image 1',
-// //   },
-// //   {
-// //     type: 'photo',
-// //     media:  "https://th.bing.com/th/id/OIP.K8piq_1Rl_AyeNbcDyPpPgAAAA?pid=ImgDet&rs=1", // Replace with the actual image URL
-// //     caption: 'Caption for Image 2',
-// //   },
-// //   // Add more media items as needed
-// // ]);
-//   console.log("resultId...........", resultId);
-
-
-//   ctx.session.selectedProductId = resultId;
-//   ctx.session[resultId] = ctx.chosenInlineResult.inline_message_id;
-//   console.log("ctx.session[resultId]", ctx.session[resultId]);
-
-//   // ...
-
-//   // Later when you want to delete the stored message
-//   const storedMessageId = ctx.session[resultId];
-//   if (storedMessageId) {
-//     // Extract the correct inline_message_id from the stored value
-//     const inlineMessageId = storedMessageId.split('_')[1];
-
-//     // Delete the stored message using the corrected inline_message_id
-//   // await  ctx.deleteMessage( inlineMessageId)
-//   //     .then(() => {
-//   //       console.log("Message deleted successfully");
-//   //     })
-//   //     .catch((error) => {
-//   //       console.error("Error deleting message:", error.description);
-//   //     });
-//   } else {
-//     console.log("No message to delete");
-//   }
-
-//   // ...
-// });
-
+    ctx.session.viewMoreSearch = newMessage.message_id;
+  }
+}
 searchProduct.action(/view_more_/, async (ctx) => {
-
   try {
     const productId = ctx.match.input.split('_')[2];
-    console.log("viewmore............",productId)
     const response = await axios.get(`http://localhost:5000/api/getprodcut/${productId}`);
-    console.log("viewmore............",response.data.product)
+    const selectedProductdata = response.data.product;
 
-const selectedProductdata=response.data.product
-  // const selectedProduct = selectedProductdata.find(product => String(product.id) === productId);
-  
-   const mediaGroup = selectedProductdata.images.map(image => ({
-    type: 'photo',
-    media: image,
-    message: "usaydu",
-  
-  
-  } ));
-  
-  await ctx.telegram.sendMediaGroup(ctx.from.id, mediaGroup);
-  await ctx.telegram.sendMessage(
-    ctx.from.id,
-    selectedProductdata.description&&selectedProductdata.description,
-    Markup.inlineKeyboard([
-      Markup.button.callback('Popular', 'popular'),
-  ])
+    const mediaGroup = selectedProductdata.images.map(image => ({
+      type: 'photo',
+      media: image,
+    }));
 
-  );
+    await ctx.telegram.sendMediaGroup(ctx.from.id, mediaGroup);
+    // await ctx.telegram.sendMessage(
+    //   ctx.from.id,
+    //   selectedProductdata.description && selectedProductdata.description,
+    //   Markup.inlineKeyboard([
+    //     Markup.button.callback('Remove Quantity', `removeQuantity_${productId}`),
+    //     Markup.button.callback('Add Quantity', `addQuantity_${productId}`)
+    //   ])
+    // );
 
-} catch (error) {
-   ctx.reply("errrpr") 
-}
+    // Use the new function to send or edit the message
+    await sendOrEditMessage(ctx, productId, selectedProductdata);
+  } catch (error) {
+    ctx.reply("Error handling view more action");
+    console.error('Error handling view more action:', error);
+  }
 });
+searchProduct.action(/(add|remove)Quantity_(.+)/, async (ctx) => {
+  const action = ctx.match[1];
+  const productId = ctx.match[2];
+
+  try {
+    // Fetch the product details
+    const response = await axios.get(`http://localhost:5000/api/getprodcut/${productId}`);
+    const product = { ...response.data.product, quantity:0 };
+    // product.quantity = typeof product.quantity === 'number' ? product.quantity : 0;
+
+    // Update the quantity based on the action
+    if (action === 'add') {
+      product.quantity += 1;
+    } else if (action === 'remove') {
+      // Ensure the quantity doesn't go below 0
+      product.quantity = Math.max(0, product.quantity - 1);
+    }
+
+    // Use the new function to send or edit the message
+    await sendOrEditMessage(ctx, productId, product);
+  } catch (error) {
+    console.error('Error handling quantity action:', error);
+  }
+});
+
 // // Function to generate data
 // const generateData = (count) => {
 //     let items = [];

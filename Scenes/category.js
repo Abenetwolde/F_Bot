@@ -21,7 +21,7 @@ categoryScene.enter(async (ctx) => {
       throw new Error('Unable to fetch categories. Please try again later.');
     }
 
-    const pairs = categories?.data.categoryList.reduce((result, value, index, array) => {
+    const pairs = categories?.data.categorys.reduce((result, value, index, array) => {
       if (index % 2 === 0)
         result.push(array.slice(index, index + 2));
       return result;

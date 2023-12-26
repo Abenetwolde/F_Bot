@@ -119,7 +119,7 @@ mongoClient.connect()
 
     bot.start(async (ctx) => {
       console.log("chatid", ctx.chat.id)
-      ctx.replyWithPhoto("http://localhost:8000/393a8c4d-b965-45ab-83ad-8a774141fa12.png")
+      // ctx.replyWithPhoto("http://localhost:8000/393a8c4d-b965-45ab-83ad-8a774141fa12.png")
       try {
         if (ctx.session.cleanUpState) {
           ctx.session.cleanUpState.forEach(async (message) => {
