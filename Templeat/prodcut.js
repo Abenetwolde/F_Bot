@@ -5,6 +5,8 @@ const { Scenes, Markup, session } = require("telegraf")
 const apiUrl = 'http://localhost:5000';
 module.exports = {
     displyProdcut: async function (ctx, producs) {
+        // console.log("sssssssssssproducssssssssssssssssss..............................",producs)
+        // const productsArray = Array.isArray(producs) ? producs : [producs];
         for (const product of producs) {
             if (ctx.session.shouldContinueSending == false) {
                 break;
@@ -31,13 +33,14 @@ module.exports = {
     },
 
     sendProduct: async function (ctx, productId, product, iscart) {
-
+console.log("reach",productId)
+console.log("reach prodcut",product)
         // const product =  ctx.session.iscart?ctx.session.cart:products
         console.log("product id............", productId)
         console.log("product............", product)
         // Generate a caption for this product by concatenating all of its properties except for the images property
         let caption = '';
-        caption = `✔️ ${product.name}\n💳 ${product.price} Birr \n ✅ ${product.discription}\n ✅ ${product.countInStock}\n
+        caption = `✔️ ${product?.name}\n💳 ${product.price} Birr \n ✅ ${product.discription}\n ✅ ${product.countInStock}\n
        `
         // Object.keys(product).forEach((key) => {
         //     if (key !== 'images') {

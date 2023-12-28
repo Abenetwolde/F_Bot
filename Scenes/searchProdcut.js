@@ -71,9 +71,13 @@ searchProduct.on('inline_query', async (ctx) => {
         reply_markup: {
           inline_keyboard: [
             [
+              // {
+              //   text: 'View More',
+              //   callback_data: `view_more_${product._id}`,
+              // },
               {
                 text: 'View More',
-                callback_data: `view_more_${product._id}`,
+                url: `https://t.me/testecommerce12bot?start=chat_${product._id}`,
               },
               {
                 text: 'Buy',

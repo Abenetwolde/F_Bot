@@ -10,6 +10,7 @@ const apiUrl = 'http://localhost:5000';
 const productSceneTest = new Scenes.BaseScene('product');
 productSceneTest.enter(async (ctx) => {
     const category = ctx.scene.state.category;
+    const product = ctx.scene.state.product;
     const sortBy = ctx.scene.state.sortBy;
     ctx.session.shouldContinueSending = true;
     console.log(category)
@@ -30,16 +31,36 @@ productSceneTest.enter(async (ctx) => {
     } else if (sortBy) {
         replyText = `You are now viewing our products sorted by ${sortBy}.`;
     }
+    console.log("product",product)
+    const productsArray = Array.isArray(product) ? product : [product];
+    const simplifiedProducts = productsArray.map(product => ({
+        ...product,
+        quantity: 0,
+        availableSizes: ['37', '46', '48', '67']
+    }));
+ctx.session.products=simplifiedProducts;
+    product? await displyProdcut(ctx, productsArray):await sendPage(ctx)
+    // if(product){ 
+    //     try { 
+
+    //      console.log("prodcut from the scene",product)
+    //         await displyProdcut(ctx, product._id, product);
+    //       } catch (error) {
+    //         console.error('Error handling quantity action:', error);
+    //       } 
+    // }else{
+    //     await sendPage(ctx)
+    // }
     await ctx.replyWithChatAction('typing');
     const prodcutKeuboard = await ctx.reply(
         replyText,
-        Markup.keyboard([
-            ['Home', 'Category'],
+        Markup.keyboard([ 
+            ['Home', 'Category'], 
             ['Checkout']
         ]).resize(),
     );
     ctx.session.cleanUpState.push({ id: prodcutKeuboard.message_id, type: 'productKeyboard' })
-    await sendPage(ctx)
+    // await sendPage(ctx)
 });
 
 productSceneTest.action('Previous', (ctx) => {
@@ -112,7 +133,7 @@ productSceneTest.hears('Category', async (ctx) => {
         try {
             if (ctx.session.cleanUpState) {
                 ctx.session.cleanUpState.forEach(async (message) => {
-                    if (message.type === 'product' || message.type === 'pageNavigation' || message.type === 'productKeyboard'/* && message.type === 'summary' */) {
+                    if (message?.type === 'product' || message?.type === 'pageNavigation' || message?.type === 'productKeyboard'/* && message.type === 'summary' */) {
                         try {
                             await ctx.telegram.deleteMessage(ctx.chat.id, message.id);
                         }
@@ -337,13 +358,14 @@ productSceneTest.action(/removeQuantity_(.+)/, async (ctx) => {
 async function sendPage(ctx) {
     if (ctx.session.cleanUpState) {
         ctx.session.cleanUpState.forEach((message) => {
-            if (message.type === 'product' || message.type === 'pageNavigation' || message.type === 'home') {
+            if (message?.type === 'product' || message?.type === 'pageNavigation' || message?.type === 'home') {
                 ctx.telegram.deleteMessage(ctx.chat.id, message.id).catch((e) => ctx.reply(e.message));
 
             }
         });
     }
     ctx.session.cleanUpState = []
+   
     const response = await getProdcuts(ctx, pageSize)
     const productsData = response.data.products;
     const simplifiedProducts = productsData.map(product => ({
@@ -359,27 +381,30 @@ async function sendPage(ctx) {
     await sendPageNavigation(ctx);
 }
 
-productSceneTest.leave(async (ctx) => {
+// productSceneTest.leave(async (ctx) => {
 
-    console.log("ctx.session.cleanUpState =>", ctx.session.cleanUpState)
-    try {
-        if (ctx.session.cleanUpState) {
-            ctx.session.cleanUpState.forEach(async (message) => {
-                console.log("%c called deleteing when its leave", "color: red;")
-                if (message.type === 'product' && message.type === 'pageNavigation') {
-                    await ctx.deleteMessage(ctx.chat.id, message.id);
-                }
+//     console.log("ctx.session.cleanUpState =>", ctx.session.cleanUpState)
+//     try {
+//         if (ctx.session.cleanUpState) {
+//             ctx.session.cleanUpState.forEach(async (message) => {
+//                 console.log("%c called deleteing when its leave", "color: red;")
+//                 if (message?.type === 'product' || message?.type === 'pageNavigation') {
+//                     await ctx.deleteMessage(ctx.chat.id, message?.id);
+//                 }
+//                 // {
+//                 //     throw new Error('The type is not defined');
+//                 // }
 
-            });
-        }
+//             });
+//         }
 
 
-    } catch (error) {
+//     } catch (error) {
 
-    }
-    ctx.session.products = [];
-    await ctx.scene.leave();
-})
+//     }
+//     ctx.session.products = [];
+//     await ctx.scene.leave();
+// })
 async function sendPageNavigation(ctx) {
     let totalPages = ctx.session.totalPages
     let pageSizeNumber = ctx.session.page

@@ -7,17 +7,18 @@ const { reply } = require('telegraf-i18next')
 const { Redis } = require("@telegraf/session/redis");
 const http = require('http');
 const LocalSession = require('telegraf-session-local');
-const axios = require('axios'); 
+const axios = require('axios');
 const fs = require('fs').promises;
 const { homeScene, productSceneTest, categoryScene, cart, searchProduct, detailScene, dateScene, noteScene, paymentScene } = require('./Scenes/index.js');
 const { checkUserToken } = require('./Utils/checkUserToken');
 const { Mongo } = require("@telegraf/session/mongodb");
 const { checkUserLanguage } = require('./Utils/language.js');
 const { MongoClient } = require('mongodb');
+const { sendProduct } = require('./Templeat/prodcut.js');
 const bot = new Telegraf("6372866851:AAE3TheUZ4csxKrNjVK3MLppQuDnbw2vdaM", {
   timeout: Infinity
 });
- 
+
 // const store = Redis({
 // 	url: "redis://127.0.0.1:6380",
 // });
@@ -74,14 +75,14 @@ mongoClient.connect()
     const store = Mongo({
       client: mongoClient,
       database: 'telegraf-bot',
-      
+
     });
 
     // Create a new Telegraf bot
 
 
     // Use the session middleware with the MongoDB store
-    bot.use(session({ store,  getSessionKey: (ctx) => ctx.from?.id.toString(), }));
+    bot.use(session({ store, getSessionKey: (ctx) => ctx.from?.id.toString(), }));
 
     // Rest of your bot setup...
     bot.use((ctx, next) => {
@@ -119,93 +120,125 @@ mongoClient.connect()
 
     bot.start(async (ctx) => {
       console.log("chatid", ctx.chat.id)
-      // ctx.replyWithPhoto("http://localhost:8000/393a8c4d-b965-45ab-83ad-8a774141fa12.png")
-      try {
-        if (ctx.session.cleanUpState) {
-          ctx.session.cleanUpState.forEach(async (message) => {
+      const startCommand = ctx.message.text.split(' ');
+      if (startCommand.length === 2 && startCommand[1].startsWith('chat_')) {
+        // Extract the question ID from the arguments
+        const questionId = startCommand[1].replace('chat_', '');
+        console.log("id from search scene", questionId)
+        try {
+          // Fetch the product details
+          const response = await axios.get(`http://localhost:5000/api/getprodcut/${questionId}`);
+          const product = response.data.product;
+          // product.quantity = typeof product.quantity === 'number' ? product.quantity : 0;
 
-            if (message.type === 'product' || message.type === 'pageNavigation') {
-              console.log("reach start.........")
-              await ctx.telegram.deleteMessage(ctx.chat.id, message.id).catch((e) => ctx.reply(e.message));
+          // Update the quantity based on the action
 
-            }
-          });
+          await ctx.scene.enter("product", { product: product })
+// await ctx.scene.leave()
+          // Use the new function to send or edit the message
+          // await sendProduct(ctx, questionId, product);
+        } catch (error) {
+          console.error('Error handling quantity action:', error);
         }
-      } catch (error) {
-        console.error("error while deleting message when the bot start", error)
-      }
-      // Check if the user has selected a language.
-      if (!ctx.session.locale) {
-        // If not, ask the user to select a language.
-        const message = await ctx.reply('Please choose your language', Markup.inlineKeyboard([
-          Markup.button.callback('English', 'set_lang:en'),
-          Markup.button.callback('አማርኛ', 'set_lang:ru')
-        ]))
-        ctx.session.languageMessageId = message.message_id;
-        const userToken = await checkUserToken(`${ctx.from.id}`,ctx)
-        console.log("userToken", userToken)
-
-        if (userToken == null) {
-          // If the user doesn't have a token, register them.
-          try {
-            const response = await axios.post('http://localhost:5000/api/createuser', {
-              telegramid: ctx.from.id,
-              name: ctx.from.first_name,
-              last: ctx.from.last_name 
-              // other necessary data...       
-            });
-            console.log("response.data", response.data)
-
-            await ctx.reply(response.data.token)
-
-            ctx.session.token = response.data.token;
-          }
-          catch (error) {
-            if (error.message == 'User already exists!') {
-              await ctx.reply("User already exists! ")
-            }
-            console.log(error.response)
-          }
-        }
-
+        // ctx.session.questionId = questionId;
+        // // Find the question by ID and populate the replies
+        // const question = await TyQuestion.findById(questionId).populate('replies.user').exec();
+        // console.log("question", question)
+        // if (question) {
+        //     // Display the question and replies to the user
+        //     sendQuestionWithReplies(ctx, question);
+        //     return;
+        // }
       } else {
-        // If the user has selected a language, check if they have a token.
-        const userToken = await checkUserToken(`${ctx.from.id}`,ctx)
-        console.log("userToken", userToken)
+        try {
+          if (ctx.session.cleanUpState) {
+            ctx.session.cleanUpState.forEach(async (message) => {
 
-        if (userToken == null) {
-          // If the user doesn't have a token, register them.
-          try {
-            const response = await axios.post('http://localhost:5000/api/createuser', {
-              telegramid: ctx.from.id,
-              name: ctx.from.first_name,
-              last: ctx.from.last_name 
-              // other necessary data...       
+              if (message?.type === 'product' || message?.type === 'pageNavigation') {
+                console.log("reach start.........")
+                await ctx.telegram.deleteMessage(ctx.chat.id, message.id).catch((e) => ctx.reply(e.message));
+
+              }
             });
-            console.log("response.data", response.data)
-
-            await ctx.reply(response.data.token)
-            const data = await fs.readFile('db.json', 'utf8');
-
-            ctx.session.token = response.data.token;
           }
-          catch (error) {
-            if (error.message == 'User already exists!') {
-              await ctx.reply("User already exists! ")
-            }
-            console.log(error.response)
-          }
+        } catch (error) {
+          console.error("error while deleting message when the bot start", error)
         }
-        // Whether the user was just registered or is already registered, enter the home scene.
-        await ctx.scene.enter('homeScene');
+        // Check if the user has selected a language.
+        if (!ctx.session.locale) {
+          // If not, ask the user to select a language.
+          const message = await ctx.reply('Please choose your language', Markup.inlineKeyboard([
+            Markup.button.callback('English', 'set_lang:en'),
+            Markup.button.callback('አማርኛ', 'set_lang:ru')
+          ]))
+          ctx.session.languageMessageId = message.message_id;
+          const userToken = await checkUserToken(`${ctx.from.id}`, ctx)
+          console.log("userToken", userToken)
+
+          if (userToken == null) {
+            // If the user doesn't have a token, register them.
+            try {
+              const response = await axios.post('http://localhost:5000/api/createuser', {
+                telegramid: ctx.from.id,
+                name: ctx.from.first_name,
+                last: ctx.from.last_name
+                // other necessary data...       
+              });
+              console.log("response.data", response.data)
+
+              await ctx.reply(response.data.token)
+
+              ctx.session.token = response.data.token;
+            }
+            catch (error) {
+              if (error.message == 'User already exists!') {
+                await ctx.reply("User already exists! ")
+              }
+              console.log(error.response)
+            }
+          }
+
+        } else {
+          // If the user has selected a language, check if they have a token.
+          const userToken = await checkUserToken(`${ctx.from.id}`, ctx)
+          console.log("userToken", userToken)
+
+          if (userToken == null) {
+            // If the user doesn't have a token, register them.
+            try {
+              const response = await axios.post('http://localhost:5000/api/createuser', {
+                telegramid: ctx.from.id,
+                name: ctx.from.first_name,
+                last: ctx.from.last_name
+                // other necessary data...       
+              });
+              console.log("response.data", response.data)
+
+              await ctx.reply(response.data.token)
+              const data = await fs.readFile('db.json', 'utf8');
+
+              ctx.session.token = response.data.token;
+            }
+            catch (error) {
+              if (error.message == 'User already exists!') {
+                await ctx.reply("User already exists! ")
+              }
+              console.log(error.response)
+            }
+          }
+          // Whether the user was just registered or is already registered, enter the home scene.
+          await ctx.scene.enter('homeScene');
+        }
       }
+      // ctx.replyWithPhoto("http://localhost:8000/393a8c4d-b965-45ab-83ad-8a774141fa12.png")
+
     });
     bot.action(/set_lang:(.+)/, async (ctx) => {
       if (!ctx.session) {
         ctx.session = {}; // Initialize session if not exists
       }
       ctx.session.locale = ctx.match[1];
-    
+
       ctx.i18next.changeLanguage(ctx.session.locale);
       if (ctx.session.languageMessageId) {
         await ctx.telegram.deleteMessage(ctx.chat.id, ctx.session.languageMessageId);
@@ -214,23 +247,23 @@ mongoClient.connect()
     });
   })
 
-  bot.on("pre_checkout_query", async (ctx) => {
-    await ctx.answerPreCheckoutQuery(true)
-    /*     respond to a pre-checkout query sent by a user when they are about to make a payment. 
-          By passing in true, 
-        this code is indicating that the payment should be allowed to proceed. */
-  })
-  /* This code uses the getWebhookInfo method to check 
-     if a webhook is set for your bot. If a webhook is set, it may cause conflicts with the getUpdates 
-     method and result in the error message you are seeing. In this case, you should either remove the webhook or switch to using webhooks 
-      instead of the getUpdates method to receive updates. */
-  bot.telegram.getWebhookInfo().then(info => {
-    if (info.url) {
-      console.log(`Webhook is set to ${info.url}, this may cause conflicts with getUpdates method`)
-    } else {
-      console.log('No webhook is set, getUpdates method should work fine')
-    }
-  })
+bot.on("pre_checkout_query", async (ctx) => {
+  await ctx.answerPreCheckoutQuery(true)
+  /*     respond to a pre-checkout query sent by a user when they are about to make a payment. 
+        By passing in true, 
+      this code is indicating that the payment should be allowed to proceed. */
+})
+/* This code uses the getWebhookInfo method to check 
+   if a webhook is set for your bot. If a webhook is set, it may cause conflicts with the getUpdates 
+   method and result in the error message you are seeing. In this case, you should either remove the webhook or switch to using webhooks 
+    instead of the getUpdates method to receive updates. */
+bot.telegram.getWebhookInfo().then(info => {
+  if (info.url) {
+    console.log(`Webhook is set to ${info.url}, this may cause conflicts with getUpdates method`)
+  } else {
+    console.log('No webhook is set, getUpdates method should work fine')
+  }
+})
   .catch((error) => {
     console.error('Error connecting to MongoDB:', error);
   });
@@ -327,7 +360,7 @@ bot.command('changeLanguage', async (ctx) => {
 });
 const storeLocation = {
   latitude: 8.987376259110306,// Replace with the actual latitude of your store
-  longitude:  38.78894603158134, // Replace with the actual longitude of your store
+  longitude: 38.78894603158134, // Replace with the actual longitude of your store
 };
 
 // Function to calculate distance
@@ -338,9 +371,9 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(deg2rad(lat1)) *
-      Math.cos(deg2rad(lat2)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+    Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distance = R * c;
@@ -357,7 +390,7 @@ bot.command('location', (ctx) => {
   ctx.reply('Please share your location:', Markup.keyboard([[Markup.button.locationRequest('Share Location')]]).resize());
 });
 
-bot.on('location', async(ctx) => {
+bot.on('location', async (ctx) => {
   const userLocation = ctx.message.location;
   console.log(userLocation)
   const latitude = ctx.message.location.latitude;
@@ -396,28 +429,28 @@ bot.on('location', async(ctx) => {
   } else {
     price = '15 Birr';
   }
-// Function to estimate travel time based on average speed
-const estimateTravelTime = (distance, averageSpeed) => {
-  // Assuming averageSpeed is in kilometers per hour
-  const travelTimeInHours = distance / averageSpeed;
-  const travelTimeInMinutes = travelTimeInHours * 60;
-  return travelTimeInMinutes;
-};
+  // Function to estimate travel time based on average speed
+  const estimateTravelTime = (distance, averageSpeed) => {
+    // Assuming averageSpeed is in kilometers per hour
+    const travelTimeInHours = distance / averageSpeed;
+    const travelTimeInMinutes = travelTimeInHours * 60;
+    return travelTimeInMinutes;
+  };
 
-// Example coordinates (replace with actual coordinates)
-// const origin = { latitude: 37.7749, longitude: -122.4194 }; // San Francisco, CA
-// const destination = { latitude: 34.0522, longitude: -118.2437 }; // Los Angeles, CA
+  // Example coordinates (replace with actual coordinates)
+  // const origin = { latitude: 37.7749, longitude: -122.4194 }; // San Francisco, CA
+  // const destination = { latitude: 34.0522, longitude: -118.2437 }; // Los Angeles, CA
 
-// // Calculate distance between origin and destination
-// const distance = calculateDistance(origin.latitude, origin.longitude, destination.latitude, destination.longitude);
+  // // Calculate distance between origin and destination
+  // const distance = calculateDistance(origin.latitude, origin.longitude, destination.latitude, destination.longitude);
 
-// Estimate travel time (assuming an average speed of 60 km/h)
-const averageSpeed = 60; // in kilometers per hour
-const travelTime = estimateTravelTime(distance, averageSpeed);
-ctx.reply(`Estimated travel time: ${travelTime.toFixed(2)} minutes`);
-console.log(`Distance: ${distance.toFixed(2)} km`);
+  // Estimate travel time (assuming an average speed of 60 km/h)
+  const averageSpeed = 60; // in kilometers per hour
+  const travelTime = estimateTravelTime(distance, averageSpeed);
+  ctx.reply(`Estimated travel time: ${travelTime.toFixed(2)} minutes`);
+  console.log(`Distance: ${distance.toFixed(2)} km`);
 
-console.log(`Estimated travel time: ${travelTime.toFixed(2)} minutes`);
+  console.log(`Estimated travel time: ${travelTime.toFixed(2)} minutes`);
 
   ctx.reply(`Distance to the store: ${distance.toFixed(2)} km\nPrice: ${price}`);
 });
@@ -499,7 +532,7 @@ setInterval(async () => {
     }
   });
 }, 60000);
-bot.on('chosen_inline_result', async(ctx) => {
+bot.on('chosen_inline_result', async (ctx) => {
   // Extract relevant information
   const userId = ctx.update.chosen_inline_result.from.id;
   const queryResultId = ctx.update.chosen_inline_result.result_id;
@@ -509,8 +542,8 @@ bot.on('chosen_inline_result', async(ctx) => {
   // Extract message ID and chat ID
   // const messageId = ctx.update.chosen_inline_result.inline_message_id;
   // const chatId = ctx.chat.id;
-console.log("ctx",ctx)
-  if (inlineMessageId ) {
+  console.log("ctx", ctx)
+  if (inlineMessageId) {
     try {
       // Use deleteMessage to delete the message
       await ctx.telegram.deleteMessage(userId, inlineMessageId);
@@ -522,9 +555,9 @@ console.log("ctx",ctx)
     console.warn('Message ID or Chat ID not available');
   }
 });
-  // You can add additional logic here if needed
+// You can add additional logic here if needed
 
-  // Don't send a message (or take any other action)
+// Don't send a message (or take any other action)
 
 // Check every 1 minute
 // bot.on('chosen_inline_result', async (ctx) => {
@@ -617,10 +650,10 @@ const launch = async () => {
     console.log('Bot is running!');
   } catch (e) {
     console.error(`Couldn't connect to Telegram - ${e.message}; trying again in 5 seconds...`);
-    
+
     // Wait for 5 seconds before attempting to reconnect
     await new Promise((resolve) => setTimeout(resolve, 5000));
-    
+
     // Retry launching the bot
     await launch();
   }
