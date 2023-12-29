@@ -4,7 +4,7 @@ const sharp = require('sharp');
 const { Scenes, Markup, session } = require("telegraf")
 const apiUrl = 'http://localhost:5000';
 module.exports = {
-    displyProdcut: async function (ctx, producs) {
+    displyProdcut: async function (ctx, producs,isSearch=false) {
         // console.log("sssssssssssproducssssssssssssssssss..............................",producs)
         // const productsArray = Array.isArray(producs) ? producs : [producs];
         for (const product of producs) {
@@ -60,8 +60,8 @@ console.log("reach prodcut",product)
         const response = await axios.get(image, { responseType: 'arraybuffer' });
 
         ;
-        if (ctx.session.cleanUpState && ctx.session.cleanUpState.find(message => message.type === 'product' && message.productId === productId)) {
-            const productMessage = ctx.session.cleanUpState.find(message => message.type === 'product' && message.productId === productId);
+        if (ctx.session.cleanUpState && ctx.session.cleanUpState.find(message => message?.type === 'product' && message?.productId === productId)) {
+            const productMessage = ctx.session.cleanUpState.find(message => message?.type === 'product' && message?.productId === productId);
             if (productMessage) {
                 const messageId = productMessage.id;
                 const viewMore = ctx.session.viewMore[productId];

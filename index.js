@@ -94,7 +94,10 @@ mongoClient.connect()
       }
       return next();
     });
+
+
     bot.use(stage.middleware())
+
     bot.use(async (ctx, next) => {
       const currentTime = new Date().getTime();
 
@@ -104,12 +107,42 @@ mongoClient.connect()
         console.log('User session started');
       }
 
-      // Set the last interaction time on every interaction
+   
       ctx.session.lastInteractionTime = currentTime;
+
+
+      if (ctx.session.intervalId) {
+        clearInterval(ctx.session.intervalId);
+      }
+
+      
+      ctx.session.intervalId = setInterval(async () => {
+        const startTime = ctx.session.startTime || 0;
+        const lastInteractionTime = ctx.session.lastInteractionTime || 0;
+
+     
+        const duration = lastInteractionTime - startTime;
+
+        // If user is inactive for a certain duration (e.g., 1 minute)
+        if (duration > 1 * 60 * 1000) {
+   
+          const formattedDuration = new Date(duration).toISOString().substr(11, 8);
+
+          await ctx.reply(`User spent ${formattedDuration} in the chat`);
+
+
+
+          ctx.session.startTime = 0;
+        
+          clearInterval(ctx.session.intervalId);
+        }
+
+      }, 60000);
 
       // Call the next middleware
       await next();
     });
+
     bot.use((ctx, next) => {
       const start = new Date();
       return next(ctx).then(() => {
@@ -134,7 +167,7 @@ mongoClient.connect()
           // Update the quantity based on the action
 
           await ctx.scene.enter("product", { product: product })
-// await ctx.scene.leave()
+          // await ctx.scene.leave()
           // Use the new function to send or edit the message
           // await sendProduct(ctx, questionId, product);
         } catch (error) {
@@ -230,7 +263,7 @@ mongoClient.connect()
           await ctx.scene.enter('homeScene');
         }
       }
-      // ctx.replyWithPhoto("http://localhost:8000/393a8c4d-b965-45ab-83ad-8a774141fa12.png")
+      // ctx.replyWithPhoto("https://backend-vg1d.onrender.com/393a8c4d-b965-45ab-83ad-8a774141fa12.png")
 
     });
     bot.action(/set_lang:(.+)/, async (ctx) => {
@@ -510,13 +543,13 @@ setInterval(async () => {
     const duration = lastInteractionTime - startTime;
     console.log("duration..........", duration)
     // If user is inactive for a certain duration (e.g., 5 minutes)
-    if (duration > 1 * 60 * 1000) {
+    if (duration > 1 * 6 * 1000) {
       // Format the duration into HH:MM:SS
       const formattedDuration = new Date(duration).toISOString().substr(11, 8);
 
       // Log or send the duration to an API
       console.log(`User spent ${formattedDuration} in the chat`);
-
+      await ctx.reply(`User spent ${formattedDuration} in the chat`)
       // Assuming your API endpoint is 'YOUR_API_ENDPOINT'
       // try {
       //   await axios.post('YOUR_API_ENDPOINT', {
@@ -531,7 +564,7 @@ setInterval(async () => {
       ctx.session.startTime = undefined;
     }
   });
-}, 60000);
+}, 6000);
 bot.on('chosen_inline_result', async (ctx) => {
   // Extract relevant information
   const userId = ctx.update.chosen_inline_result.from.id;

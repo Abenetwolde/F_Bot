@@ -37,9 +37,12 @@ productSceneTest.enter(async (ctx) => {
         ...product,
         quantity: 0,
         availableSizes: ['37', '46', '48', '67']
+        
     }));
-ctx.session.products=simplifiedProducts;
-    product? await displyProdcut(ctx, productsArray):await sendPage(ctx)
+    
+
+    
+
     // if(product){ 
     //     try { 
 
@@ -60,8 +63,11 @@ ctx.session.products=simplifiedProducts;
         ]).resize(),
     );
     ctx.session.cleanUpState.push({ id: prodcutKeuboard.message_id, type: 'productKeyboard' })
-    // await sendPage(ctx)
+     
+ctx.session.products=simplifiedProducts;
+product? await displyProdcut(ctx, productsArray):await sendPage(ctx)   // await sendPage(ctx)
 });
+
 
 productSceneTest.action('Previous', (ctx) => {
     if (ctx.session.currentPage > 0) {
@@ -104,7 +110,7 @@ productSceneTest.hears('Home', async (ctx) => {
         try {
             if (ctx.session.cleanUpState) {
                 ctx.session.cleanUpState.forEach(async (message) => {
-                    if (message.type === 'product' || message.type === 'pageNavigation' || message.type === 'productKeyboard'/* && message.type === 'summary' */) {
+                    if (message?.type === 'product' || message?.type === 'pageNavigation' || message?.type === 'productKeyboard'/* && message.type === 'summary' */) {
                         try {
                             await ctx.telegram.deleteMessage(ctx.chat.id, message.id);
                         }
@@ -364,12 +370,12 @@ async function sendPage(ctx) {
             }
         });
     }
-    ctx.session.cleanUpState = []
+    // ctx.session.cleanUpState = []
    
     const response = await getProdcuts(ctx, pageSize)
     const productsData = response.data.products;
-    const simplifiedProducts = productsData.map(product => ({
-        ...product,
+     const simplifiedProducts = productsData.map(product => ({
+         ...product,
         quantity: 0,
         availableSizes: ['37', '46', '48', '67']
     }));
@@ -381,30 +387,30 @@ async function sendPage(ctx) {
     await sendPageNavigation(ctx);
 }
 
-// productSceneTest.leave(async (ctx) => {
+productSceneTest.leave(async (ctx) => {
 
-//     console.log("ctx.session.cleanUpState =>", ctx.session.cleanUpState)
-//     try {
-//         if (ctx.session.cleanUpState) {
-//             ctx.session.cleanUpState.forEach(async (message) => {
-//                 console.log("%c called deleteing when its leave", "color: red;")
-//                 if (message?.type === 'product' || message?.type === 'pageNavigation') {
-//                     await ctx.deleteMessage(ctx.chat.id, message?.id);
-//                 }
-//                 // {
-//                 //     throw new Error('The type is not defined');
-//                 // }
+    console.log("ctx.session.cleanUpState =>", ctx.session.cleanUpState)
+    try {
+        if (ctx.session.cleanUpState) {
+            ctx.session.cleanUpState.forEach(async (message) => {
+                console.log("%c called deleteing when its leave", "color: red;")
+                if (message?.type === 'product' && message?.type === 'pageNavigation') {
+                    await ctx.deleteMessage(ctx.chat.id, message?.id);
+                }
+                // {
+                //     throw new Error('The type is not defined');
+                // }
 
-//             });
-//         }
+            });
+        }
 
 
-//     } catch (error) {
+    } catch (error) {
 
-//     }
-//     ctx.session.products = [];
-//     await ctx.scene.leave();
-// })
+    }
+    ctx.session.products = [];
+    await ctx.scene.leave();
+})
 async function sendPageNavigation(ctx) {
     let totalPages = ctx.session.totalPages
     let pageSizeNumber = ctx.session.page

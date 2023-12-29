@@ -70,7 +70,7 @@ categoryScene.leave(async (ctx) => {
   try {
     if (ctx.session.cleanUpState) {
         ctx.session.cleanUpState.map(async(message) => {
-            if (message.type === 'category') {
+            if (message?.type === 'category') {
               console.log("reach category leave scene")
               try {
                 await ctx.telegram.deleteMessage(ctx.chat.id, message.id);

@@ -24,7 +24,7 @@ module.exports = {
             //   }
           
               ctx.session.currentImageIndex[productId] = 0;
-              ctx.session.viewMore[productId] = false;
+              ctx.session.viewMore[productId] = true;
               // ctx.session.quantity[productId] = 0;
                await module.exports.sendCartProduct(ctx, productId, product);
             // console.log( "promises",promises)
