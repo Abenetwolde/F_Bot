@@ -175,10 +175,10 @@ cart.leave(async (ctx) => {
  try {
         if (ctx.session.cleanUpState) {
             ctx.session.cleanUpState.map(async(message) => {
-                if (message.type === 'nocartmessage' || message.type === 'cart'||message.type === 'summary') {
+                if (message?.type === 'nocartmessage' || message?.type === 'cart'||message?.type === 'summary') {
                   console.log("reach cart leave scene")
                   try {
-                    await ctx.telegram.deleteMessage(ctx.chat.id, message.id);
+                    await ctx.telegram.deleteMessage(ctx.chat.id, message?.id);
                   } catch (error) {
                     console.log("error occoring",error) 
                   }
@@ -186,7 +186,7 @@ cart.leave(async (ctx) => {
                 }
             });
         }
-    } catch (error) {
+    } catch (error) { 
       console.error('Error in cart:', error);
     }
   await ctx.scene.leave();

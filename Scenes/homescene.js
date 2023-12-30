@@ -80,7 +80,7 @@ homeScene.leave(async (ctx) => {
             // Iterate over the cleanUpState array
             for (const message of ctx.session.cleanUpState) {
                 // Check if the message exists before attempting to delete it
-                if (message.type === 'home') {
+                if (message?.type === 'home') {
                     await ctx.telegram.deleteMessage(ctx.chat.id, message.id);
                 }
             }

@@ -98,50 +98,8 @@ mongoClient.connect()
 
     bot.use(stage.middleware())
 
-    bot.use(async (ctx, next) => {
-      const currentTime = new Date().getTime();
 
-      // Set the start time on the user's first interaction
-      if (!ctx.session.startTime) {
-        ctx.session.startTime = currentTime;
-        console.log('User session started');
-      }
-
-   
-      ctx.session.lastInteractionTime = currentTime;
-
-
-      if (ctx.session.intervalId) {
-        clearInterval(ctx.session.intervalId);
-      }
-
-      
-      ctx.session.intervalId = setInterval(async () => {
-        const startTime = ctx.session.startTime || 0;
-        const lastInteractionTime = ctx.session.lastInteractionTime || 0;
-
-     
-        const duration = lastInteractionTime - startTime;
-
-        // If user is inactive for a certain duration (e.g., 1 minute)
-        if (duration > 1 * 60 * 1000) {
-   
-          const formattedDuration = new Date(duration).toISOString().substr(11, 8);
-
-          await ctx.reply(`User spent ${formattedDuration} in the chat`);
-
-
-
-          ctx.session.startTime = 0;
-        
-          clearInterval(ctx.session.intervalId);
-        }
-
-      }, 60000);
-
-      // Call the next middleware
-      await next();
-    });
+  
 
     bot.use((ctx, next) => {
       const start = new Date();
@@ -150,7 +108,52 @@ mongoClient.connect()
         console.log('Response time: %sms', ms);
       });
     })
+    const fakeDatabase = {
+      users: {},
+    };
 
+    // bot.use((ctx, next) => {
+    //   const now = new Date().getTime();
+    //   const userId = ctx.from.id;
+    
+    //   if (!fakeDatabase.users[userId]) {
+    //     fakeDatabase.users[userId] = {
+    //       startTime: now,
+    //       lastInteractionTime: now,
+    //     };
+    //   }
+    
+    //   const interactionDuration = now - fakeDatabase.users[userId].lastInteractionTime;
+    
+    //   if (interactionDuration > 6000) {
+    //     // Update the database with total time spent and send a message to the user
+    //     updateDatabase(userId, interactionDuration, ctx);
+    //     fakeDatabase.users[userId].startTime = now;
+    //   }
+    
+    //   fakeDatabase.users[userId].lastInteractionTime = now;
+    
+    //   next();
+    // });
+
+    function updateDatabase(userId, interactionDuration, ctx) {
+      // Replace this with your actual database update logic
+      const totalTimeSpent = fakeDatabase.users[userId].startTime + interactionDuration;
+      
+      // Send a message to the user with the total time spent
+      ctx.reply(`Total time spent: ${formatTime(totalTimeSpent)}`);
+      
+      console.log(`Updating database for user ${userId}. Total time spent: ${totalTimeSpent}`);
+    }
+    
+    // Function to format time in HH:MM:SS
+    function formatTime(milliseconds) {
+      const seconds = Math.floor(milliseconds / 1000) % 60;
+      const minutes = Math.floor(milliseconds / (1000 * 60)) % 60;
+      const hours = Math.floor(milliseconds / (1000 * 60 * 60));
+    
+      return `${hours} hours, ${minutes} minutes, ${seconds} seconds`;
+    }
     bot.start(async (ctx) => {
       console.log("chatid", ctx.chat.id)
       const startCommand = ctx.message.text.split(' ');
@@ -173,30 +176,22 @@ mongoClient.connect()
         } catch (error) {
           console.error('Error handling quantity action:', error);
         }
-        // ctx.session.questionId = questionId;
-        // // Find the question by ID and populate the replies
-        // const question = await TyQuestion.findById(questionId).populate('replies.user').exec();
-        // console.log("question", question)
-        // if (question) {
-        //     // Display the question and replies to the user
-        //     sendQuestionWithReplies(ctx, question);
-        //     return;
-        // }
+     
       } else {
-        try {
-          if (ctx.session.cleanUpState) {
-            ctx.session.cleanUpState.forEach(async (message) => {
+        // try {
+        //   if (ctx.session.cleanUpState) {
+        //     ctx.session.cleanUpState.forEach(async (message) => {
 
-              if (message?.type === 'product' || message?.type === 'pageNavigation') {
-                console.log("reach start.........")
-                await ctx.telegram.deleteMessage(ctx.chat.id, message.id).catch((e) => ctx.reply(e.message));
+        //       if (message?.type === 'product' || message?.type === 'pageNavigation') {
+        //         console.log("reach start.........")
+        //         await ctx.telegram.deleteMessage(ctx.chat.id, message?.id).catch((e) => ctx.reply(e.message));
 
-              }
-            });
-          }
-        } catch (error) {
-          console.error("error while deleting message when the bot start", error)
-        }
+        //       }
+        //     });
+        //   }
+        // } catch (error) {
+        //   console.error("error while deleting message when the bot start", error)
+        // }
         // Check if the user has selected a language.
         if (!ctx.session.locale) {
           // If not, ask the user to select a language.
@@ -423,7 +418,7 @@ bot.command('location', (ctx) => {
   ctx.reply('Please share your location:', Markup.keyboard([[Markup.button.locationRequest('Share Location')]]).resize());
 });
 
-bot.on('location', async (ctx) => {
+bot.on<"location">('location', async (ctx) => {
   const userLocation = ctx.message.location;
   console.log(userLocation)
   const latitude = ctx.message.location.latitude;
@@ -489,7 +484,6 @@ bot.on('location', async (ctx) => {
 });
 
 
-
 // bot.action("Home", async (ctx) => {
 //   await ctx.scene.enter("homeScene")
 //   console.log("go to Home called")
@@ -534,37 +528,7 @@ bot.catch(async (err, ctx) => {
   });
   // }
 })
-setInterval(async () => {
-  bot.use(async (ctx) => {
-    const startTime = ctx.session.startTime || 0;
-    const lastInteractionTime = ctx.session.lastInteractionTime || 0;
 
-    // Calculate session duration
-    const duration = lastInteractionTime - startTime;
-    console.log("duration..........", duration)
-    // If user is inactive for a certain duration (e.g., 5 minutes)
-    if (duration > 1 * 6 * 1000) {
-      // Format the duration into HH:MM:SS
-      const formattedDuration = new Date(duration).toISOString().substr(11, 8);
-
-      // Log or send the duration to an API
-      console.log(`User spent ${formattedDuration} in the chat`);
-      await ctx.reply(`User spent ${formattedDuration} in the chat`)
-      // Assuming your API endpoint is 'YOUR_API_ENDPOINT'
-      // try {
-      //   await axios.post('YOUR_API_ENDPOINT', {
-      //     userId: ctx.from.id,
-      //     duration: formattedDuration,
-      //   });
-      // } catch (error) {
-      //   console.error('Error sending duration to API:', error.message);
-      // }
-
-      // Reset the start time for the next session
-      ctx.session.startTime = undefined;
-    }
-  });
-}, 6000);
 bot.on('chosen_inline_result', async (ctx) => {
   // Extract relevant information
   const userId = ctx.update.chosen_inline_result.from.id;

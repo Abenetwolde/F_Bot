@@ -69,10 +69,10 @@ product? await displyProdcut(ctx, productsArray):await sendPage(ctx)   // await 
 });
 
 
-productSceneTest.action('Previous', (ctx) => {
+productSceneTest.action('Previous', async(ctx) => {
     if (ctx.session.currentPage > 0) {
         ctx.session.currentPage--;
-        sendPage(ctx);
+        await  sendPage(ctx);
     }
 });
 productSceneTest.action('Next', async (ctx) => {
@@ -370,7 +370,7 @@ async function sendPage(ctx) {
             }
         });
     }
-    // ctx.session.cleanUpState = []
+    ctx.session.cleanUpState = []
    
     const response = await getProdcuts(ctx, pageSize)
     const productsData = response.data.products;
