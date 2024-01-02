@@ -120,9 +120,9 @@ async function sendOrEditMessage(ctx, productId, product) {
       null,
       messageText,
       Markup.inlineKeyboard([
-        Markup.button.callback('Remove Quantity', `removeQuantity_${productId}`),
-        Markup.button.callback('Add Quantity', `addQuantity_${productId}`),
-        Markup.button.callback('Buy', `addQuantity_${productId}`),
+        Markup.button.callback('-', `removeQuantity_${productId}`),
+        Markup.button.callback('+', `addQuantity_${productId}`),
+        Markup.button.callback('Buy Now', `addQuantity_${productId}`),
       ])
     );
 
@@ -133,9 +133,9 @@ async function sendOrEditMessage(ctx, productId, product) {
       ctx.from.id,
       messageText,
       Markup.inlineKeyboard([
-        Markup.button.callback('Remove Quantity', `removeQuantity_${productId}`),
-        Markup.button.callback('Add Quantity', `addQuantity_${productId}`),
-        Markup.button.callback('Buy', `addQuantity_${productId}`),
+        Markup.button.callback('-', `removeQuantity_${productId}`),
+        Markup.button.callback('+', `addQuantity_${productId}`),
+        Markup.button.callback('Buy Now', `addQuantity_${productId}`),
       ])
     );
 

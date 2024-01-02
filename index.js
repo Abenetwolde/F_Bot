@@ -15,13 +15,17 @@ const { Mongo } = require("@telegraf/session/mongodb");
 const { checkUserLanguage } = require('./Utils/language.js');
 const { MongoClient } = require('mongodb');
 const { sendProduct } = require('./Templeat/prodcut.js');
+const { createUser } = require('./Database/UserController.js');
+
 const bot = new Telegraf("6372866851:AAE3TheUZ4csxKrNjVK3MLppQuDnbw2vdaM", {
   timeout: Infinity
 });
-
+require("dotenv").config();
+const connectDatabase = require('./config/database.js');
 // const store = Redis({
 // 	url: "redis://127.0.0.1:6380",
 // });
+connectDatabase()
 bot.use(i18next({
   debug: true,
   lng: 'en',
@@ -61,7 +65,7 @@ const stage = new Stage([homeScene, searchProduct, detailScene, productSceneTest
 
 
 // bot.use(localSession.middleware());
-const mongoClient = new MongoClient('mongodb://127.0.0.1:27017', {
+const mongoClient = new MongoClient('mongodb+srv://Abnet:80110847@cluster0.vdpmtdg.mongodb.net/?retryWrites=true&w=majority', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
@@ -154,6 +158,7 @@ mongoClient.connect()
     
       return `${hours} hours, ${minutes} minutes, ${seconds} seconds`;
     }
+  
     bot.start(async (ctx) => {
       console.log("chatid", ctx.chat.id)
       const startCommand = ctx.message.text.split(' ');
@@ -178,20 +183,20 @@ mongoClient.connect()
         }
      
       } else {
-        // try {
-        //   if (ctx.session.cleanUpState) {
-        //     ctx.session.cleanUpState.forEach(async (message) => {
+        try {
+          if (ctx.session.cleanUpState) {
+            ctx.session.cleanUpState.forEach(async (message) => {
 
-        //       if (message?.type === 'product' || message?.type === 'pageNavigation') {
-        //         console.log("reach start.........")
-        //         await ctx.telegram.deleteMessage(ctx.chat.id, message?.id).catch((e) => ctx.reply(e.message));
+              if (message?.type === 'product' || message?.type === 'pageNavigation'||message?.type === 'productKeyboard') {
+                console.log("reach start.........")
+                await ctx.telegram.deleteMessage(ctx.chat.id, message?.id).catch((e) => ctx.reply(e.message));
 
-        //       }
-        //     });
-        //   }
-        // } catch (error) {
-        //   console.error("error while deleting message when the bot start", error)
-        // }
+              }
+            });
+          }
+        } catch (error) {
+          console.error("error while deleting message when the bot start", error)
+        }
         // Check if the user has selected a language.
         if (!ctx.session.locale) {
           // If not, ask the user to select a language.
@@ -206,17 +211,23 @@ mongoClient.connect()
           if (userToken == null) {
             // If the user doesn't have a token, register them.
             try {
-              const response = await axios.post('http://localhost:5000/api/createuser', {
+              // const response = await axios.post('http://localhost:5000/api/createuser', {
+              //   telegramid: ctx.from.id,
+              //   name: ctx.from.first_name,
+              //   last: ctx.from.last_name
+              //   // other necessary data...       
+              // });
+              const response = await createUser({
                 telegramid: ctx.from.id,
                 name: ctx.from.first_name,
-                last: ctx.from.last_name
-                // other necessary data...       
+                last: ctx.from.last_name,
               });
-              console.log("response.data", response.data)
+    
+              console.log("response.data", response)
 
-              await ctx.reply(response.data.token)
+              // await ctx.reply(response.data.token)
 
-              ctx.session.token = response.data.token;
+              // ctx.session.token = response.data.token;
             }
             catch (error) {
               if (error.message == 'User already exists!') {
@@ -234,16 +245,21 @@ mongoClient.connect()
           if (userToken == null) {
             // If the user doesn't have a token, register them.
             try {
-              const response = await axios.post('http://localhost:5000/api/createuser', {
+              // const response = await axios.post('http://localhost:5000/api/createuser', {
+              //   telegramid: ctx.from.id,
+              //   name: ctx.from.first_name,
+              //   last: ctx.from.last_name
+              //   // other necessary data...       
+              // });
+              const response = await createUser({
                 telegramid: ctx.from.id,
                 name: ctx.from.first_name,
-                last: ctx.from.last_name
-                // other necessary data...       
+                last: ctx.from.last_name,
               });
-              console.log("response.data", response.data)
+              console.log("response.data", response)
 
-              await ctx.reply(response.data.token)
-              const data = await fs.readFile('db.json', 'utf8');
+              await ctx.reply(response)
+        
 
               ctx.session.token = response.data.token;
             }
@@ -298,69 +314,12 @@ bot.telegram.getWebhookInfo().then(info => {
 // bot.use(session({ defaultSession: () => ({ locale: 'en' }) }))
 
 bot.telegram.setMyCommands([
-  { command: 'start', description: 'Test command' },
-  { command: 'greetings', description: 'Greetings command' }
+  { command: 'start', description: 'Start' },
+  { command: 'changelanguage', description: 'Language' },
+  // { command: 'location', description: 'Location' }
 ]);
 
 
-// bot.use(async (ctx, next) => {
-//   if (!ctx.session.messages) {
-//     ctx.session.messages = [];
-//   }
-//   const message = await next();
-
-//   if (message && message.message_id) {
-//     ctx.session.messages.push({
-//       id: message.message_id,
-//       type: message.chat.type,
-//     });
-//   } 
-
-// });
-
-// Middleware to track user interactions and send duration to API if inactive
-
-
-// Middleware to periodically check user activity and send to API
-// setInterval(async () => {
-//   bot.use(async (ctx) => {
-//     const startTime = ctx.session.startTime || 0;
-//     const lastInteractionTime = ctx.session.lastInteractionTime || 0;
-
-//     // Calculate session duration
-//     const duration = lastInteractionTime - startTime;
-// console.log("duration..........",duration)
-//     // If user is inactive for a certain duration (e.g., 5 minutes)
-//     if (duration > 1 * 60 * 1000) {
-//       // Format the duration into HH:MM:SS
-//       const formattedDuration = new Date(duration).toISOString().substr(11, 8);
-
-//       // Log or send the duration to an API
-//       console.log(`User spent ${formattedDuration} in the chat`);
-
-//       // Assuming your API endpoint is 'YOUR_API_ENDPOINT'
-//       // try {
-//       //   await axios.post('YOUR_API_ENDPOINT', {
-//       //     userId: ctx.from.id,
-//       //     duration: formattedDuration,
-//       //   });
-//       // } catch (error) {
-//       //   console.error('Error sending duration to API:', error.message);
-//       // }
-
-//       // Reset the start time for the next session
-//       ctx.session.startTime = undefined;
-//     }
-//   });
-// }, 6000); // Check every 1 minute
-
-
-
-
-
-bot.command('product', async (ctx) => {
-  ctx.scene.enter("PRODUCT_SCENE")
-});
 
 bot.command('mariya', async (ctx) => {
   const userId = ctx.message.from.id
@@ -377,11 +336,8 @@ bot.command('mariya', async (ctx) => {
 
 
 
-bot.command('farewell', (ctx) => {
-  return ctx.reply(ctx.i18next.t('farewell'));
-});
 
-bot.command('changeLanguage', async (ctx) => {
+bot.command('changelanguage', async (ctx) => {
   let language = ctx.session.locale == "en" ? "ru" : "en";
   ctx.i18next.changeLanguage(language);
   return ctx.reply(ctx.i18next.t('changeLanguage'));
@@ -529,29 +485,7 @@ bot.catch(async (err, ctx) => {
   // }
 })
 
-bot.on('chosen_inline_result', async (ctx) => {
-  // Extract relevant information
-  const userId = ctx.update.chosen_inline_result.from.id;
-  const queryResultId = ctx.update.chosen_inline_result.result_id;
-  const inlineMessageId = ctx.update.chosen_inline_result.inline_message_id;
-  // Log the chosen inline result
-  console.log(`User ${userId} chose inline result ${queryResultId}`);
-  // Extract message ID and chat ID
-  // const messageId = ctx.update.chosen_inline_result.inline_message_id;
-  // const chatId = ctx.chat.id;
-  console.log("ctx", ctx)
-  if (inlineMessageId) {
-    try {
-      // Use deleteMessage to delete the message
-      await ctx.telegram.deleteMessage(userId, inlineMessageId);
-      console.log(`Message deleted: ${messageId}`);
-    } catch (error) {
-      console.error(`Error deleting message: ${error}`);
-    }
-  } else {
-    console.warn('Message ID or Chat ID not available');
-  }
-});
+
 // You can add additional logic here if needed
 
 // Don't send a message (or take any other action)

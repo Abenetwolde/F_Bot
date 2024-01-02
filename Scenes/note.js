@@ -102,8 +102,8 @@ console.log("orderData=>",orderData)
 noteScene.leave(async (ctx) => {
     try {
         console.log("Cleaning note scene")
-        Utils.clearTimeout(ctx)
-        Utils.cleanUpMessage(ctx, true)
+        // Utils.clearTimeout(ctx)
+        // Utils.cleanUpMessage(ctx, true)
     } catch (error) {
 
     }

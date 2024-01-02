@@ -3,18 +3,32 @@ const axios = require('axios');
 
 const { t, match } = require('telegraf-i18next')
 const homeScene = new Scenes.BaseScene('homeScene');
-
+const apiUrl = 'http://localhost:5000';
 homeScene.enter(async (ctx) => {
     try {
+        await ctx.sendChatAction('typing');
         // Display the initial message
         console.log("isthere a prodcut on session????????",ctx.session.products)
         ctx.session.cleanUpState = ctx.session.cleanUpState || [];
+        let categories;
+        try {
+          categories = await axios.get(`${apiUrl}/api/getcategorys`);
+        } catch (error) {
+          // Handle API error gracefully
+          console.error('API error:', error);
+          throw new Error('Unable to fetch categories. Please try again later.');
+        }
 
+        const pairs = categories?.data.categorys.reduce((result, value, index, array) => {
+            if (index % 2 === 0)
+              result.push(array.slice(index, index + 2));
+            return result;
+          }, []);
         try {
             const welcomeMessage = await ctx.reply(
                 `Hello ${ctx.from.first_name}!`,
                 Markup.keyboard([
-                    [ctx.i18next.t('Category'), ctx.i18next.t('Search'), ctx.i18next.t('cart')],
+                    [ctx.i18next.t('Search'), ctx.i18next.t('cart')],
                     [ctx.i18next.t('cart'), ctx.i18next.t('order'), ctx.i18next.t('Language')]
                 ]).resize(),
             );
@@ -29,10 +43,7 @@ homeScene.enter(async (ctx) => {
         try {
             const secondaryMessage = await ctx.reply(
                 ctx.i18next.t('wellcomemessage'),
-                Markup.inlineKeyboard([
-                    [Markup.button.callback(ctx.i18next.t('Latest'), 'latest'),
-                    Markup.button.callback('Popular', 'popular')],
-                ])
+                Markup.inlineKeyboard(   pairs.map(pair => pair.map(category => Markup.button.callback(`${category.icon} ${category.name}`, `category_${category._id}_${category.name}`))))
             )
             ctx.session.cleanUpState.push({ id: secondaryMessage.message_id, type: 'home' });
         } catch (error) {
@@ -45,13 +56,21 @@ homeScene.enter(async (ctx) => {
 });
 
 
-
+homeScene.action(/category_(.+)/, async(ctx) => {
+    const callbackData = ctx.match[1];
+    const [categoryId, categoryName] = callbackData.split('_');
+  
+    // Now, you have both the category ID and name separately
+    console.log('Category ID:', categoryId);
+    console.log('Category Name:', categoryName);
+    // ctx.scene.enter('product',  { category: categoryId });
+   await ctx.scene.enter('product', { category: { id: categoryId, name: categoryName } });
+    
+  });
 homeScene.hears(match('Search'), async (ctx) => {
     await ctx.scene.enter("searchProduct")
 })
-homeScene.hears(match('Category'), async (ctx) => {
-    await ctx.scene.enter("category")
-})
+
 homeScene.hears(match('cart'), async (ctx) => {
     await ctx.scene.enter("cart")
 })
@@ -78,7 +97,7 @@ homeScene.leave(async (ctx) => {
     try {
         if (ctx.session.cleanUpState) {
             // Iterate over the cleanUpState array
-            for (const message of ctx.session.cleanUpState) {
+             for (const message of ctx.session.cleanUpState) {
                 // Check if the message exists before attempting to delete it
                 if (message?.type === 'home') {
                     await ctx.telegram.deleteMessage(ctx.chat.id, message.id);

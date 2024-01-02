@@ -40,7 +40,7 @@ console.log("reach prodcut",product)
         console.log("product............", product)
         // Generate a caption for this product by concatenating all of its properties except for the images property
         let caption = '';
-        caption = `✔️ ${product?.name}\n💳 ${product.price} Birr \n ✅ ${product.discription}\n ✅ ${product.countInStock}\n
+        caption = ` ${product?.name}\n ▪️${product.price} Birr \n ▪️${product.discription}\n  ▪️${product.countInStock}\n
        `
         // Object.keys(product).forEach((key) => {
         //     if (key !== 'images') {
@@ -79,33 +79,12 @@ console.log("reach prodcut",product)
                         Markup.button.callback('➡️', `next_${productId}`)
                     ]);
                 }
-                if (viewMore) {
-                    keyboard.push(
-                        [Markup.button.callback('⬛️', `Checkout`),
-                        Markup.button.callback('⬜️', `Checkout`),
-                        Markup.button.callback('🟤', `Checkout`)],
-                    );
-                }
-                if (viewMore) {
-                    // keyboard.push([
-                    //     Markup.button.callback('37', `size_${productId}_37`),
-                    //     Markup.button.callback('46', `size_${productId}_46`),
-                    //     Markup.button.callback('48', `size_${productId}_48`),
-                    //     Markup.button.callback('67', `size_${productId}_67`),]
-                    //     );
-                    // const availableSizes = ctx.session.availableSizes[productId];
-                    const availableSizes = product.availableSizes
-                    // Generate the size buttons dynamically
-                    // const sizeButtons = availableSizes.map((size) => Markup.button.callback(ctx.session.selectedSize && ctx.session.selectedSize.productId === productId && ctx.session.selectedSize.size === size ? `${size}✅` : size, `size_${productId}_${size}`));
-                    const sizeButtons = availableSizes.map((size) => Markup.button.callback(product.selectedSize==size ? `${size}✅` : size, `size_${productId}_${size}`));
-                    // Add the size buttons to the keyboard
-                    keyboard.push(sizeButtons);
-                }
+          
                 if (quantity > 0) {
                     keyboard.push([
-                        Markup.button.callback('Remove Quantity', `removeQuantity_${productId}`),
+                        Markup.button.callback('-', `removeQuantity_${productId}`),
                         Markup.button.callback(`${quantity} * ${price} = ${quantity * price} ${currency}`, `quantity_${productId}`),
-                        Markup.button.callback('Add Quantity', `addQuantity_${productId}`)
+                        Markup.button.callback('+', `addQuantity_${productId}`)
                     ], [
                         Markup.button.callback('Check Out', `Checkout`)
                     ]);
@@ -168,9 +147,9 @@ console.log("reach prodcut",product)
                     ] /* : [] */,
                     ...(product.quantity > 0 ? [
                         [
-                            Markup.button.callback('Remove Quantity', `removeQuantity_${productId}`),
+                            Markup.button.callback('-', `removeQuantity_${productId}`),
                             Markup.button.callback(`${product.quantity} * ${product.price} = ${product.quantity * product.price} ${product.currency}`, `quantity_${productId}`),
-                            Markup.button.callback('Add Quantity', `addQuantity_${productId}`)
+                            Markup.button.callback('+', `addQuantity_${productId}`)
                         ]
                     ] : (ctx.session.viewMore[productId] ? [
                         [

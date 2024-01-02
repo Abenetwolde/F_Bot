@@ -59,9 +59,6 @@ categoryScene.action(/category_(.+)/, async(ctx) => {
   
 });
 categoryScene.hears('Home', async (ctx) => {
-  
-      // await new Promise(resolve => setTimeout(resolve, 1000));
-    //  await ctx.scene.leave(); 
      await ctx.scene.enter('homeScene');
     //  await ctx.scene.leave();
  });

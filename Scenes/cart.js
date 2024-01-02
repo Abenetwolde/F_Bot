@@ -14,7 +14,7 @@ cart.enter(async (ctx) => {
   try {
     if (ctx.session.cleanUpState) {
         ctx.session.cleanUpState.forEach((message) => {
-            if (message.type === 'product' && message.type === 'pageNavigation') {
+            if (message?.type === 'product' && message?.type === 'pageNavigation') {
                 ctx.telegram.deleteMessage(ctx.chat.id, message.id);
             }
         });
@@ -146,7 +146,7 @@ cart.hears('Home', async (ctx) => {
  });
 
 cart.action("checkOut", async (ctx) => {
-  ctx.reply("do you want to delevery",Markup.inlineKeyboard([
+  await ctx.reply("do you want to delevery",Markup.inlineKeyboard([
     [ 
         { text: "✅ Yes", callback_data: "Yes" },
         { text: "❌ No", callback_data: "No" },

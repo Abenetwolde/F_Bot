@@ -39,11 +39,14 @@ module.exports = {
         console.log("product",product)
         // Generate a caption for this product by concatenating all of its properties except for the images property
         let caption = '';
-        Object.keys(product).forEach((key) => {
-            if (key !== 'images') {
-                caption += `${key}: ${product[key]}\n`;
-            }
-        });
+        caption+=`${product.name} \n`
+        caption+=`${product.price}\n`
+        caption+= `${product.quantity} * ${product.price} = ${product.quantity * product.price} ${product.currency}`
+        // Object.keys(product).forEach((key) => {
+        //     if (key !== 'images') {
+        //         caption += `${key}: ${product[key]}\n`;
+        //     }
+        // });
         // If the viewMore flag for this product is false and the caption is longer than 20 characters, truncate it and add an ellipsis
         if (!ctx.session.viewMore[productId] && caption.length > 20) {
             caption = caption.substring(0, 50) + '...';
@@ -68,21 +71,21 @@ module.exports = {
                     caption: caption
                 },
                 Markup.inlineKeyboard([
-                    [
-                        Markup.button.callback('⬅️', `previous_${productId}`),
-                        ctx.session.viewMore[productId] ? Markup.button.callback('View Less', `viewLess_${productId}`) : Markup.button.callback('View More', `viewMore_${productId}`),
-                        Markup.button.callback('➡️', `next_${productId}`),
-                        // ...(ctx.session.viewMore[productId] ? [Markup.button.callback('Buy', `buy_${productId}`)] : [])
-                    ],
+                    // [
+                    //     Markup.button.callback('⬅️', `previous_${productId}`),
+                    //     ctx.session.viewMore[productId] ? Markup.button.callback('View Less', `viewLess_${productId}`) : Markup.button.callback('View More', `viewMore_${productId}`),
+                    //     Markup.button.callback('➡️', `next_${productId}`),
+                    //     // ...(ctx.session.viewMore[productId] ? [Markup.button.callback('Buy', `buy_${productId}`)] : [])
+                    // ],
                     ...(product.quantity > 0 ? [
                         [
-                            Markup.button.callback('Remove Quantity', `removeQuantity_${productId}`),
-                            Markup.button.callback(`${product.quantity} * ${product.price} = ${product.quantity * product.price} ${product.currency}`, `quantity_${productId}`),
-                            Markup.button.callback('Add Quantity', `addQuantity_${productId}`)
+                            Markup.button.callback('-', `removeQuantity_${productId}`),
+                            Markup.button.callback(`${product.quantity}`, `quantity_${productId}`),
+                            Markup.button.callback('+', `addQuantity_${productId}`)
                         ]
                     ] : (ctx.session.viewMore[productId] ? [
                         [
-                            Markup.button.callback('Buy', `buy_${productId}`)
+                            Markup.button.callback('Buy Now', `buy_${productId}`)
                         ]
                     ] : []))
                 ])
@@ -99,17 +102,18 @@ module.exports = {
             await ctx.replyWithPhoto({ source: imageBuffer }, {
                 caption: caption,
                 ...Markup.inlineKeyboard([
-                    [
-                        Markup.button.callback('⬅️', `previous_${productId}`),
-                        ctx.session.viewMore[productId] ? Markup.button.callback('View Less', `viewLess_${productId}`) : Markup.button.callback('View More', `viewMore_${productId}`),
-                        Markup.button.callback('➡️', `next_${productId}`),
-                        //  ...(ctx.session.viewMore[productId] ? [Markup.button.callback('Buy', `buy_${productId}`)] : [])
-                    ],
+                    // [
+                    //     Markup.button.callback('⬅️', `previous_${productId}`),
+                    //     ctx.session.viewMore[productId] ? Markup.button.callback('View Less', `viewLess_${productId}`) : Markup.button.callback('View More', `viewMore_${productId}`),
+                    //     Markup.button.callback('➡️', `next_${productId}`),
+                    //     //  ...(ctx.session.viewMore[productId] ? [Markup.button.callback('Buy', `buy_${productId}`)] : [])
+                    // ],
                     ...(product.quantity > 0 ? [
                         [
-                            Markup.button.callback('Remove Quantity', `removeQuantity_${productId}`),
-                            Markup.button.callback(`${product.quantity} * ${product.price} = ${product.quantity * product.price} ${product.currency}`, `quantity_${productId}`),
-                            Markup.button.callback('Add Quantity', `addQuantity_${productId}`)
+                            Markup.button.callback('-', `removeQuantity_${productId}`),
+                            Markup.button.callback(`${product.quantity}`, `quantity_${productId}`),
+                            // Markup.button.callback(`${product.quantity} * ${product.price} = ${product.quantity * product.price} ${product.currency}`, `quantity_${productId}`),
+                            Markup.button.callback('+', `addQuantity_${productId}`)
                         ]
                     ] : (ctx.session.viewMore[productId] ? [
                         [

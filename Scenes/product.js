@@ -40,29 +40,15 @@ productSceneTest.enter(async (ctx) => {
         
     }));
     
-
-    
-
-    // if(product){ 
-    //     try { 
-
-    //      console.log("prodcut from the scene",product)
-    //         await displyProdcut(ctx, product._id, product);
-    //       } catch (error) {
-    //         console.error('Error handling quantity action:', error);
-    //       } 
-    // }else{
-    //     await sendPage(ctx)
-    // }
-    await ctx.replyWithChatAction('typing');
+    await ctx.sendChatAction('typing');
     const prodcutKeuboard = await ctx.reply(
         replyText,
         Markup.keyboard([ 
-            ['Home', 'Category'], 
-            ['Checkout']
+            ['Home', 'Checkout'], 
+   
         ]).resize(),
     );
-    ctx.session.cleanUpState.push({ id: prodcutKeuboard.message_id, type: 'productKeyboard' })
+   await ctx.session.cleanUpState.push({ id: prodcutKeuboard.message_id, type: 'productKeyboard' })
      
 ctx.session.products=simplifiedProducts;
 product? await displyProdcut(ctx, productsArray):await sendPage(ctx)   // await sendPage(ctx)
@@ -89,7 +75,7 @@ productSceneTest.hears('Checkout', async (ctx) => {
     try {
         if (ctx.session.cleanUpState) {
             ctx.session.cleanUpState.forEach(async (message) => {
-                if (message.type === 'product' || message.type === 'pageNavigation' /* && message.type === 'summary' */) {
+                if (message?.type === 'product' || message?.type === 'pageNavigation'  && message?.type === 'productKeyboard') {
                     await ctx.telegram.deleteMessage(ctx.chat.id, message.id);
                 }
             });
@@ -429,17 +415,14 @@ async function sendPageNavigation(ctx) {
     if (ctx.session.totalNumberProducts > perPage && ctx.session.currentPage === 1) {
         buttons = [pageSize, nextButton];
     }
-    else if (ctx.session.totalNumberProducts <= pageSizeNumber) {
+    else if (ctx.session.totalNumberProducts <= perPage) {
         buttons = [Markup.button.callback('No More Product', 'no')]
     }
-    // else if ( ctx.session.currentPage  < totalPages) {
-    //     buttons = [previousButton,pageSize,nextButton];
-    // }  // else if (ctx.session.currentPage < totalPages) {
-    //     buttons = [];
-    // }
+
     else if (ctx.session.totalNumberProducts >= perPage && ctx.session.currentPage === totalPages) {
         buttons = [previousButton, pageSize];
-    }
+    } 
+
     // if ( ctx.session.currentPage  == totalPages) {
     //     buttons = [previousButton,pageSize];
     // }
@@ -458,9 +441,7 @@ async function sendPageNavigation(ctx) {
 
     await ctx.session.cleanUpState.push({ id: message.message_id, type: 'pageNavigation' });
 }
-// productSceneTest.leave(async (ctx) => {
-//   await ctx.scene.leave();
-// });
+
 module.exports = {
     productSceneTest
 }

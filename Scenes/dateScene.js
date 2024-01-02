@@ -73,7 +73,7 @@ dateScene.on("callback_query", async (ctx) => {
                 console.log("you click yes")
                 await sendProdcutSummary(ctx, ctx.session.isWaiting.date)
         
-                ctx.scene.enter("NOTE_SCENE", {
+               await ctx.scene.enter("NOTE_SCENE", {
                     deliveryDate: ctx.session.isWaiting.date,
                     
                 })
