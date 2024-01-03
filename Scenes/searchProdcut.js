@@ -2,6 +2,8 @@
 const { Scenes, Markup, session } = require("telegraf")
 const axios = require('axios');
 const { replace } = require("lodash");
+const { getAllProducts } = require("../Database/productcontroller");
+const { getProducts } = require("../Services/prodcut");
 const searchProduct = new Scenes.BaseScene('searchProduct');
 const itemsPerPage = 10;
 const apiUrl = " http://localhost:5000"
@@ -42,30 +44,38 @@ searchProduct.on('inline_query', async (ctx) => {
     // const offset = parseInt(ctx.inlineQuery.offset) || 0;
     // const page = Math.floor(offset / pageSize) + 1;
     // Fetch product data from the backend API
-    const response = await axios.get('http://localhost:5000/api/getproducts', {
-      params: {
-        search: input,
-        // page: page,
-        pageSize: 10,
-        // Add any other query parameters as needed
-      },
+    // const response = await axios.get('http://localhost:5000/api/getproducts', {
+    //   params: {
+    //     search: input,
+    //     // page: page,
+    //     pageSize: 10,
+    //     // Add any other query parameters as needed
+    //   },
+    // });
+
+    const response = await getProducts(ctx, {
+      search: input,
+      page: 1, // Set the default page value or adjust it based on your requirements
+      pageSize: 10,
     });
 
-    const products = response.data.products;
-    const totalPages = response.data.totalPages;
-    // Map the fetched products to Telegram inline query results
-    const results = products.map((product) => {
-      const thumbnail = product.images[0];
+    const products = JSON.parse(response);
+console.log("prodcus",products)
 
+    // const totalPages = products.totalPages;
+    // Map the fetched products to Telegram inline query results
+    const results = products?.products.map((product) => {
+      const thumbnail = product?.images[0];
+      console.log("prodcus titile",product?.name)
       return {
         type: 'article',
-        title: product.name,
+        title: product?.name||"Product",
         photo_url: String(thumbnail),
         thumb_url: String(thumbnail),
-        description: product.description,
-        id: String(product._id),
+        description: product?.description,
+        id: String(product?._id),
         input_message_content: {
-          message_text: `${product.name && product.name}\n product.description,<a href="${thumbnail}">&#8205;</a>`,
+          message_text: `${product?.name && product?.name}\n product.description,<a href="${thumbnail}">&#8205;</a>`,
           parse_mode: "HTML",
         },
         reply_markup: {
@@ -81,7 +91,7 @@ searchProduct.on('inline_query', async (ctx) => {
               },
               {
                 text: 'Buy',
-                callback_data: `Buy_${product._id}`,
+                callback_data: `Buy_${product?._id}`,
               },
             ],
           ],

@@ -22,6 +22,7 @@ const bot = new Telegraf("6372866851:AAE3TheUZ4csxKrNjVK3MLppQuDnbw2vdaM", {
 });
 require("dotenv").config();
 const connectDatabase = require('./config/database.js');
+const { getSingleProduct } = require('./Database/productcontroller.js');
 // const store = Redis({
 // 	url: "redis://127.0.0.1:6380",
 // });
@@ -168,13 +169,28 @@ mongoClient.connect()
         console.log("id from search scene", questionId)
         try {
           // Fetch the product details
-          const response = await axios.get(`http://localhost:5000/api/getprodcut/${questionId}`);
-          const product = response.data.product;
-          // product.quantity = typeof product.quantity === 'number' ? product.quantity : 0;
+          // const response = await axios.get(`http://localhost:5000/api/getprodcut/${questionId}`);
+          // const product = response.data.product;
 
+          const response = await getSingleProduct(questionId);
+       const product=  JSON.stringify(response)
+       console.log("ssssssssssssssssssssssssss,",product)
+          // product.quantity = typeof product.quantity === 'number' ? product.quantity : 0;
+          if (product) {
+            // product.quantity = typeof product.quantity === 'number' ? product.quantity : 0;
+        const singleP=await JSON.parse(product)
+            // Update the quantity based on the action
+             await ctx.scene.enter('product', { product:  singleP});
+            // await ctx.scene.leave()
+            // Use the new function to send or edit the message
+            // await sendProduct(ctx, questionId, product);
+          } else { 
+            console.error('Product not found.');
+            // Handle the case when the product is not found
+          }
           // Update the quantity based on the action
 
-          await ctx.scene.enter("product", { product: product })
+          // await ctx.scene.enter("product", { product: product })
           // await ctx.scene.leave()
           // Use the new function to send or edit the message
           // await sendProduct(ctx, questionId, product);
@@ -225,9 +241,9 @@ mongoClient.connect()
     
               console.log("response.data", response)
 
-              // await ctx.reply(response.data.token)
+               await ctx.reply(response.user.token)
 
-              // ctx.session.token = response.data.token;
+               ctx.session.token = response.user.token;
             }
             catch (error) {
               if (error.message == 'User already exists!') {
@@ -258,10 +274,10 @@ mongoClient.connect()
               });
               console.log("response.data", response)
 
-              await ctx.reply(response)
+              await ctx.reply(response.user.token)
         
 
-              ctx.session.token = response.data.token;
+              ctx.session.token = response.user.token;
             }
             catch (error) {
               if (error.message == 'User already exists!') {

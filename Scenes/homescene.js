@@ -1,7 +1,8 @@
 const { Scenes, Markup, session } = require("telegraf")
 const axios = require('axios');
 
-const { t, match } = require('telegraf-i18next')
+const { t, match } = require('telegraf-i18next');
+const { getAllCategories } = require("../Database/categoryController");
 const homeScene = new Scenes.BaseScene('homeScene');
 const apiUrl = 'http://localhost:5000';
 homeScene.enter(async (ctx) => {
@@ -10,16 +11,17 @@ homeScene.enter(async (ctx) => {
         // Display the initial message
         console.log("isthere a prodcut on session????????",ctx.session.products)
         ctx.session.cleanUpState = ctx.session.cleanUpState || [];
-        let categories;
-        try {
-          categories = await axios.get(`${apiUrl}/api/getcategorys`);
-        } catch (error) {
-          // Handle API error gracefully
-          console.error('API error:', error);
-          throw new Error('Unable to fetch categories. Please try again later.');
-        }
+        // let categories;
+        // try {
+        //   categories = await axios.get(`${apiUrl}/api/getcategorys`);
+        // } catch (error) {
+        //   // Handle API error gracefully
+        //   console.error('API error:', error);
+        //   throw new Error('Unable to fetch categories. Please try again later.');
+        // }
+        const categories = await getAllCategories();
 
-        const pairs = categories?.data.categorys.reduce((result, value, index, array) => {
+        const pairs = categories?.categories.reduce((result, value, index, array) => {
             if (index % 2 === 0)
               result.push(array.slice(index, index + 2));
             return result;

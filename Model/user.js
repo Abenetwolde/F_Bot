@@ -23,8 +23,8 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    default: 'User',
-    required: [true, 'Role is required'],
+    // default: 'User',
+    // required: [true, 'Role is required'],
   },
   language: {
     type: String,
@@ -36,4 +36,4 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model('Users', userSchema);

@@ -3,6 +3,7 @@ const axios = require('axios');
 const sharp = require('sharp');
 const { Scenes, Markup, session } = require("telegraf")
 const apiUrl = 'http://localhost:5000';
+const { ObjectId } = require('mongodb');
 module.exports = {
     displyProdcut: async function (ctx, producs,isSearch=false) {
         // console.log("sssssssssssproducssssssssssssssssss..............................",producs)
@@ -24,7 +25,7 @@ module.exports = {
             ctx.session.currentImageIndex[productId] = 0;
             ctx.session.viewMore[productId] = false;
             const messageInfo = await module.exports.sendProduct(ctx, productId, product);
-
+console.log("messageinfo", messageInfo)
             // Store the message information in the session
             ctx.session.cleanUpState.push(messageInfo);
 
@@ -40,7 +41,7 @@ console.log("reach prodcut",product)
         console.log("product............", product)
         // Generate a caption for this product by concatenating all of its properties except for the images property
         let caption = '';
-        caption = ` ${product?.name}\n ▪️${product.price} Birr \n ▪️${product.discription}\n  ▪️${product.countInStock}\n
+        caption = ` ${product?.name}\n ▪️${product?.price} Birr \n ▪️${product?.discription}\n
        `
         // Object.keys(product).forEach((key) => {
         //     if (key !== 'images') {
@@ -52,11 +53,11 @@ console.log("reach prodcut",product)
             caption = caption.substring(0, 50) + '...';
         }
         // Check if the image for this product exists
-        if (!product.images || !product.images[ctx.session.currentImageIndex[productId]]) {
+        if (!product?.images || !product?.images[ctx.session.currentImageIndex[productId]]) {
             return;
         }
         // Get the current image of this product from its images array using the current image productId stored in the session data
-        const image = product.images[ctx.session.currentImageIndex[productId]];
+        const image = product?.images[ctx.session.currentImageIndex[productId]];
         const response = await axios.get(image, { responseType: 'arraybuffer' });
 
         ;
@@ -163,7 +164,7 @@ console.log("reach prodcut",product)
             return {
                 id: message.message_id,
                 type: 'product',
-                productId: productId
+                productId:productId
             };
         }
 

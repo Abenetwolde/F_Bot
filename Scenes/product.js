@@ -2,7 +2,7 @@
 const { Scenes, Markup, session } = require("telegraf")
 const axios = require('axios');
 const sharp = require('sharp');
-const { getProdcuts } = require("../Services/prodcut");
+const { getProdcuts, getProducts } = require("../Services/prodcut");
 const { displyProdcut, sendProduct } = require("../Templeat/prodcut");
 const pageSize = 3;
 const apiUrl = 'http://localhost:5000';
@@ -31,7 +31,7 @@ productSceneTest.enter(async (ctx) => {
     } else if (sortBy) {
         replyText = `You are now viewing our products sorted by ${sortBy}.`;
     }
-    console.log("product",product)
+    console.log("product single from product scene",product)
     const productsArray = Array.isArray(product) ? product : [product];
     const simplifiedProducts = productsArray.map(product => ({
         ...product,
@@ -51,7 +51,7 @@ productSceneTest.enter(async (ctx) => {
    await ctx.session.cleanUpState.push({ id: prodcutKeuboard.message_id, type: 'productKeyboard' })
      
 ctx.session.products=simplifiedProducts;
-product? await displyProdcut(ctx, productsArray):await sendPage(ctx)   // await sendPage(ctx)
+product? await displyProdcut(ctx, simplifiedProducts):await sendPage(ctx)   // await sendPage(ctx)
 });
 
 
@@ -357,20 +357,38 @@ async function sendPage(ctx) {
         });
     }
     ctx.session.cleanUpState = []
-   
-    const response = await getProdcuts(ctx, pageSize)
-    const productsData = response.data.products;
-     const simplifiedProducts = productsData.map(product => ({
-         ...product,
-        quantity: 0,
-        availableSizes: ['37', '46', '48', '67']
-    }));
-    ctx.session.products = simplifiedProducts;
-    ctx.session.page = response.data.page;
-    ctx.session.totalPages = response.data.totalPages;
-    ctx.session.totalNumberProducts = response.data.count;
-    await displyProdcut(ctx, await response.data.products);
-    await sendPageNavigation(ctx);
+
+
+    try {
+        const response = await getProducts(ctx, pageSize)
+        const products = JSON.parse(response);
+        console.log("Prodcut.........", products);
+      
+        if (!products || !products.products || !Array.isArray(products.products)) {
+          console.error('Error: Unable to fetch valid products data from the response.');
+          console.log('Response:', products);
+        } else {
+          const productsData = products.products;
+          console.log("Product data:", productsData);
+      
+          const simplifiedProducts = productsData.map(product => ({
+            ...product,
+            quantity: 0,
+            availableSizes: ['37', '46', '48', '67']
+          }));
+      
+          ctx.session.products = simplifiedProducts;
+          ctx.session.page = products.page;
+          ctx.session.totalPages = products.totalPages;
+          ctx.session.totalNumberProducts = products.count;
+      
+          await displyProdcut(ctx, productsData);
+          await sendPageNavigation(ctx);
+        }
+      } catch (error) {
+        console.error('Error parsing products JSON:', error);
+      }
+
 }
 
 productSceneTest.leave(async (ctx) => {

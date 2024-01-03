@@ -1,25 +1,30 @@
-const User = require('../Model/user');
+// const User = require('../Model/user');
+const Users= require('../Model/user')
+const jwt = require("jsonwebtoken");
+const connectDatabase = require('../config/database');
 
 async function createUser(data) {
     console.log("reach register user................",data.telegramid)
     console.log("reach register user................", data.name)
 
   try {
-    let user = await User.findOne({ telegramid: data.telegramid });
+    connectDatabase()
+    let user = await Users.findOne({ telegramid: data.telegramid });
  
     if (user) {
       return { token: user.token, message: 'User already registered.' };
     } else {
         const token = jwt.sign(
-            { userId: user._id },
-            process.env.JWT_TOKEN_SECRET_KEY,
+            { userId: data.telegramid},
+            process.env.JWT_TOKEN_SECRET_KEY||"hfjkdhjkhsjdkghjkd",
             { expiresIn: "7d" }
           ); 
-
-      user = new User({
+          console.log("user................",token)
+ user = await new Users({
         telegramid: data.telegramid,
-        name: data.name,
-        token: token,
+        name:data.name,
+        last:data.last,
+         token: token,
       });
       console.log("user................",user)
       user = await user.save();
