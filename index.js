@@ -634,7 +634,7 @@ try {
   new Promise((resolve) => setTimeout(resolve, 5000));
 
   // Retry launching the bot
-  await launch();
+ 
 }
 // launch();
 
