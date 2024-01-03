@@ -631,7 +631,7 @@ try {
   console.error(`Couldn't connect to Telegram - ${e.message}; trying again in 5 seconds...`);
 
   // Wait for 5 seconds before attempting to reconnect
-  await new Promise((resolve) => setTimeout(resolve, 5000));
+  new Promise((resolve) => setTimeout(resolve, 5000));
 
   // Retry launching the bot
   await launch();
