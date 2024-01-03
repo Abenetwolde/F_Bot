@@ -1,6 +1,7 @@
 const { Scenes, Markup } = require("telegraf")
 const { sendProdcutSummary } = require("../Templeat/summary")
 const axios = require('axios');
+const { createOrder } = require("../Database/orderController");
 const apiUrl = 'http://localhost:5000';
 
 const noteScene = new Scenes.BaseScene("NOTE_SCENE")
@@ -55,21 +56,23 @@ noteScene.on("callback_query", async (ctx) => {
 
             
             const result = await sendProdcutSummary(ctx, ctx.scene.state.deliveryDate, ctx.session.isWaiting.note)
-
+console.log("resut...........",result)
             const orderData={
                 shippingInfo: {   
                     note:result.usernote ,
                   },
                   orderItems:result.orderItems,
-                  user: "64fc441dc2df0c5c6132238b",
+                  orderfromtelegram:true,
+                  telegramid: ctx.from.id,
                   totalPrice:result.totalPrice,
                   delivery:result.datePick!==null?"Yes":"no",
                   shippedAt: result.datePick??result.datePick
                 }
             console.log("resultFromnote", result)
             try {
-                orderResponse = await axios.post(`${apiUrl}/api/createorder`, orderData);
-                console.log("orderResponse",orderResponse.data.order._id)
+                const orderResponse= await createOrder(orderData)
+                // orderResponse = await axios.post(`${apiUrl}/api/createorder`, orderData);
+                 console.log("orderResponse.........",orderResponse)
             //    await ctx.reply(response.data.sccess)
             } catch (error) {
                 console.error("orderResponseerror",error)

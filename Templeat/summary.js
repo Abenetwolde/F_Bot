@@ -45,6 +45,7 @@ module.exports = {
         }
         summary += `\nTotal Quantity: ${totalQuantity}\nTotal Price: ${totalPrice} ETB`;
         console.log("summary", summary)
+
         // Check if there is a previous summary message ID stored in the cleanUpState array
         if (ctx.session.cleanUpState && ctx.session.cleanUpState.find(message => message.type === 'summary')) {
             const messageId = ctx.session.cleanUpState.find(message => message.type === 'summary').id;
@@ -127,13 +128,7 @@ module.exports = {
             }); */
         } 
         console.log("orderItems", orderItems)
-        return {
-            orderItems,
-            datePick,
-             usernote,
-          
-            
-        }
+      
     }
 
 
