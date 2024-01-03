@@ -626,6 +626,7 @@ try {
     },
   });
   console.log('Bot is running!');
+  http.createServer(bot.webhookCallback('/my-secret-path')).listen(3000);
 } catch (e) {
   console.error(`Couldn't connect to Telegram - ${e.message}; trying again in 5 seconds...`);
 
