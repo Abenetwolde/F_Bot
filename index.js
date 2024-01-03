@@ -104,7 +104,7 @@ mongoClient.connect()
     bot.use(stage.middleware())
 
 
-  
+
 
     bot.use((ctx, next) => {
       const start = new Date();
@@ -120,46 +120,46 @@ mongoClient.connect()
     // bot.use((ctx, next) => {
     //   const now = new Date().getTime();
     //   const userId = ctx.from.id;
-    
+
     //   if (!fakeDatabase.users[userId]) {
     //     fakeDatabase.users[userId] = {
     //       startTime: now,
     //       lastInteractionTime: now,
     //     };
     //   }
-    
+
     //   const interactionDuration = now - fakeDatabase.users[userId].lastInteractionTime;
-    
+
     //   if (interactionDuration > 6000) {
     //     // Update the database with total time spent and send a message to the user
     //     updateDatabase(userId, interactionDuration, ctx);
     //     fakeDatabase.users[userId].startTime = now;
     //   }
-    
+
     //   fakeDatabase.users[userId].lastInteractionTime = now;
-    
+
     //   next();
     // });
 
     function updateDatabase(userId, interactionDuration, ctx) {
       // Replace this with your actual database update logic
       const totalTimeSpent = fakeDatabase.users[userId].startTime + interactionDuration;
-      
+
       // Send a message to the user with the total time spent
       ctx.reply(`Total time spent: ${formatTime(totalTimeSpent)}`);
-      
+
       console.log(`Updating database for user ${userId}. Total time spent: ${totalTimeSpent}`);
     }
-    
+
     // Function to format time in HH:MM:SS
     function formatTime(milliseconds) {
       const seconds = Math.floor(milliseconds / 1000) % 60;
       const minutes = Math.floor(milliseconds / (1000 * 60)) % 60;
       const hours = Math.floor(milliseconds / (1000 * 60 * 60));
-    
+
       return `${hours} hours, ${minutes} minutes, ${seconds} seconds`;
     }
-  
+
     bot.start(async (ctx) => {
       console.log("chatid", ctx.chat.id)
       const startCommand = ctx.message.text.split(' ');
@@ -173,18 +173,18 @@ mongoClient.connect()
           // const product = response.data.product;
 
           const response = await getSingleProduct(questionId);
-       const product=  JSON.stringify(response)
-       console.log("ssssssssssssssssssssssssss,",product)
+          const product = JSON.stringify(response)
+          console.log("ssssssssssssssssssssssssss,", product)
           // product.quantity = typeof product.quantity === 'number' ? product.quantity : 0;
           if (product) {
             // product.quantity = typeof product.quantity === 'number' ? product.quantity : 0;
-        const singleP=await JSON.parse(product)
+            const singleP = await JSON.parse(product)
             // Update the quantity based on the action
-             await ctx.scene.enter('product', { product:  singleP});
+            await ctx.scene.enter('product', { product: singleP });
             // await ctx.scene.leave()
             // Use the new function to send or edit the message
             // await sendProduct(ctx, questionId, product);
-          } else { 
+          } else {
             console.error('Product not found.');
             // Handle the case when the product is not found
           }
@@ -197,13 +197,13 @@ mongoClient.connect()
         } catch (error) {
           console.error('Error handling quantity action:', error);
         }
-     
+
       } else {
         try {
           if (ctx.session.cleanUpState) {
             ctx.session.cleanUpState.forEach(async (message) => {
 
-              if (message?.type === 'product' || message?.type === 'pageNavigation'||message?.type === 'productKeyboard') {
+              if (message?.type === 'product' || message?.type === 'pageNavigation' || message?.type === 'productKeyboard') {
                 console.log("reach start.........")
                 await ctx.telegram.deleteMessage(ctx.chat.id, message?.id).catch((e) => ctx.reply(e.message));
 
@@ -238,12 +238,12 @@ mongoClient.connect()
                 name: ctx.from.first_name,
                 last: ctx.from.last_name,
               });
-    
+
               console.log("response.data", response)
 
-               await ctx.reply(response.user.token)
+              await ctx.reply(response.user.token)
 
-               ctx.session.token = response.user.token;
+              ctx.session.token = response.user.token;
             }
             catch (error) {
               if (error.message == 'User already exists!') {
@@ -275,7 +275,7 @@ mongoClient.connect()
               console.log("response.data", response)
 
               await ctx.reply(response.user.token)
-        
+
 
               ctx.session.token = response.user.token;
             }
@@ -390,7 +390,7 @@ bot.command('location', (ctx) => {
   ctx.reply('Please share your location:', Markup.keyboard([[Markup.button.locationRequest('Share Location')]]).resize());
 });
 
-bot.on<"location">('location', async (ctx) => {
+bot.on < "location" > ('location', async (ctx) => {
   const userLocation = ctx.message.location;
   console.log(userLocation)
   const latitude = ctx.message.location.latitude;
@@ -585,27 +585,56 @@ process.once("SIGTERM", () => bot.stop("SIGTERM"))
 //     limit: 100,
 //   },
 // })
-const launch = async () => {
-  try {
-    await bot.launch({
-      dropPendingUpdates: true,
-      polling: {
-        timeout: 30,
-        limit: 100,
-      },
-    });
-    console.log('Bot is running!');
-  } catch (e) {
-    console.error(`Couldn't connect to Telegram - ${e.message}; trying again in 5 seconds...`);
+// const launch = async () => {
+//   try {
+//     // await bot.launch({
+//     //   dropPendingUpdates: true,
+//     //   polling: {
+//     //     timeout: 30,
+//     //     limit: 100,
+//     //   },
+//     // });
+//     bot.launch({
+//       webhook: {
+//         domain: 'https://telegrambot-iytz.onrender.com/',
+//         hookPath: '/my-secret-path',
+//       },
+//     });
+//     console.log('Bot is running!');
+//   } catch (e) {
+//     console.error(`Couldn't connect to Telegram - ${e.message}; trying again in 5 seconds...`);
 
-    // Wait for 5 seconds before attempting to reconnect
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+//     // Wait for 5 seconds before attempting to reconnect
+//     await new Promise((resolve) => setTimeout(resolve, 5000));
 
-    // Retry launching the bot
-    await launch();
-  }
-};
+//     // Retry launching the bot
+//     await launch();
+//   }
+// };
+try {
+  // await bot.launch({
+  //   dropPendingUpdates: true,
+  //   polling: {
+  //     timeout: 30,
+  //     limit: 100,
+  //   },
+  // });
+  bot.launch({
+    webhook: {
+      domain: 'https://telegrambot-iytz.onrender.com/',
+      hookPath: '/my-secret-path',
+    },
+  });
+  console.log('Bot is running!');
+} catch (e) {
+  console.error(`Couldn't connect to Telegram - ${e.message}; trying again in 5 seconds...`);
 
-launch();
+  // Wait for 5 seconds before attempting to reconnect
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+
+  // Retry launching the bot
+  await launch();
+}
+// launch();
 
 
