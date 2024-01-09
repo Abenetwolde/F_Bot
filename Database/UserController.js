@@ -8,7 +8,7 @@ async function createUser(data) {
     console.log("reach register user................", data.name)
 
   try {
-    connectDatabase()
+
     let user = await Users.findOne({ telegramid: data.telegramid });
  
     if (user) {

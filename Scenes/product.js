@@ -4,7 +4,9 @@ const axios = require('axios');
 const sharp = require('sharp');
 const { getProdcuts, getProducts } = require("../Services/prodcut");
 const { displyProdcut, sendProduct } = require("../Templeat/prodcut");
-const pageSize = 3;
+const { createCart, updateCartItemQuantity, removeItemFromCart } = require("../Database/cartController");
+const Product = require("../Model/product");
+const pageSize = 1;
 const apiUrl = 'http://localhost:5000';
 // const apiUrl = 'https://backend-vg1d.onrender.com';
 const productSceneTest = new Scenes.BaseScene('product');
@@ -35,11 +37,11 @@ productSceneTest.enter(async (ctx) => {
     const productsArray = Array.isArray(product) ? product : [product];
     const simplifiedProducts = productsArray.map(product => ({
         ...product,
-        quantity: 0,
+        // quantity: 0,
         availableSizes: ['37', '46', '48', '67']
         
     }));
-    
+
     await ctx.sendChatAction('typing');
     const prodcutKeuboard = await ctx.reply(
         replyText,
@@ -48,13 +50,15 @@ productSceneTest.enter(async (ctx) => {
    
         ]).resize(),
     );
-   await ctx.session.cleanUpState.push({ id: prodcutKeuboard.message_id, type: 'productKeyboard' })
+    await ctx.session.cleanUpState.push({ id: prodcutKeuboard.message_id, type: 'productKeyboard' })
+console.log("prodcutKeuboard......................",ctx.session.cleanUpState)
+   
      
 ctx.session.products=simplifiedProducts;
 product? await displyProdcut(ctx, simplifiedProducts):await sendPage(ctx)   // await sendPage(ctx)
 });
 
-
+ 
 productSceneTest.action('Previous', async(ctx) => {
     if (ctx.session.currentPage > 0) {
         ctx.session.currentPage--;
@@ -72,17 +76,17 @@ productSceneTest.hears('Checkout', async (ctx) => {
 
     ctx.session.shouldContinueSending = false
 
-    try {
-        if (ctx.session.cleanUpState) {
-            ctx.session.cleanUpState.forEach(async (message) => {
-                if (message?.type === 'product' || message?.type === 'pageNavigation'  && message?.type === 'productKeyboard') {
-                    await ctx.telegram.deleteMessage(ctx.chat.id, message.id);
-                }
-            });
-        }
-    } catch (error) {
-        ctx.reply(error)
-    }
+    // try {
+    //     if (ctx.session.cleanUpState) {
+    //         ctx.session.cleanUpState.forEach(async (message) => {
+    //             if (message?.type === 'product' || message?.type === 'pageNavigation'  || message?.type === 'productKeyboard') {
+    //                 await ctx.telegram.deleteMessage(ctx.chat.id, message.id);
+    //             }
+    //         });
+    //     }
+    // } catch (error) {
+    //     ctx.reply(error)
+    // }
     // await ctx.scene.leave();
     // setTimeout(async () => {
 
@@ -153,17 +157,17 @@ productSceneTest.action('Checkout', async (ctx) => {
     // await ctx.scene.leave();
     ctx.session.shouldContinueSending = false
 
-    try {
-        if (ctx.session.cleanUpState) {
-            ctx.session.cleanUpState.forEach(async (message) => {
-                if (message.type === 'product' || message.type === 'pageNavigation' /* && message.type === 'summary' */) {
-                    await ctx.telegram.deleteMessage(ctx.chat.id, message.id);
-                }
-            });
-        }
-    } catch (error) {
-        ctx.reply(error)
-    }
+    // try {
+    //     if (ctx.session.cleanUpState) {
+    //         ctx.session.cleanUpState.forEach(async (message) => {
+    //             if (message.type === 'product' || message.type === 'pageNavigation' /* && message.type === 'summary' */) {
+    //                 await ctx.telegram.deleteMessage(ctx.chat.id, message.id);
+    //             }
+    //         });
+    //     }
+    // } catch (error) {
+    //     ctx.reply(error)
+    // }
     // await ctx.scene.leave();
     // setTimeout(async () => {
 
@@ -260,103 +264,96 @@ productSceneTest.action(/viewLess_(.+)/, (ctx) => {
     product[0].quantity[productId] = 0;
     sendProduct(ctx, productId, product[0]);
 });
+
 productSceneTest.action(/buy_(.+)/, async (ctx) => {
     const productId = ctx.match[1];
-
-    // ctx.session.quantity[productId] = 1;
-    const products = ctx.session.products;
-    const product = products.filter((p) => p._id == productId)
-    // product[0].quantity++
-    // console.log("product find on buy.............",product[0].quantity++ )
-    const cartItemIndex = ctx.session.cart.findIndex(item => item._id === productId);
-
-    if (cartItemIndex === -1) {
-        ctx.session.cart.push({
-            ...product[0],
-            quantity: 1,
-
-        });
-        product[0].quantity++
-        // ctx.reply(`You have added ${ product[0].quantity}" of product ${productId} to your cart.`);
-    } else {
-        // ctx.reply(`agsin You have added ${product[0].quantity}" of product ${productId} to your cart.`);
-        ctx.session.cart[cartItemIndex].quantity += product[0].quantity;
+  
+    try {
+      // Assuming userId is available in the context (you need to handle user authentication)
+      const userId = ctx.from.id;
+  
+      // Call createCartItem to add the product to the cart
+      const cartItem = await createCart(userId, productId, 1);
+      const cartJson =  JSON.stringify(cartItem);
+      const CartData= await JSON.parse(cartJson)
+      const cartArg = { ...CartData.product, quantity: CartData.quantity };
+console.log("cartItem..........................",cartArg)
+      // Send the product information to the user
+      sendProduct(ctx, productId, cartArg);
+  
+      // Send a confirmation message
+    //   await ctx.answerCbQuery(`You have added ${cartItem.quantity} of product ${cartItem.product.name} to your cart.`);
+    } catch (error) {
+      console.error('Error handling buy action:', error);
+      await ctx.answerCbQuery('Failed to add the product to your cart.');
     }
-    await ctx.answerCbQuery(`You have added ${product[0].quantity} of product ${product.name} to your cart.`);
-
-    sendProduct(ctx, productId, product[0]);
-    // Send summary messag
-
-    //   sendSummary(ctx, product[0]);
-});
-
-productSceneTest.action(/addQuantity_(.+)/, async (ctx) => {
+  });
+  productSceneTest.action(/addQuantity_(.+)/, async (ctx) => {
     const productId = ctx.match[1];
+  
+    try {
+      // Assuming userId is available in the context (you need to handle user authentication)
+      const userId = ctx.from.id;
+  
+      // Call updateCartItemQuantity to add the product to the cart
+      const updatedCart = await updateCartItemQuantity(userId, productId, 1);
+  
+      // Fetch product data
 
-    // ctx.session.quantity[productId]++;
-    const products = ctx.session.products;
-    let product = products.filter((p) => p._id == productId)
-    //  product[0].quantity++;
-    const cartItemIndex = ctx.session.cart.findIndex(item => item._id === productId);
-    console.log(cartItemIndex)
-    console.log(ctx.session.cart[cartItemIndex])
-    if (cartItemIndex === -1) {
-        ctx.session.cart.push({
-            ...product[0],
-            quantity: product[0].quantity,
-            // quantity: 1
-        });
-        // ctx.reply(`You have added ${ product[0].quantity}" of product ${productId} to your cart.`);
-    } else {
-
-        ctx.session.cart[cartItemIndex].quantity += 1;
-        // ctx.reply(`agsin FROM ADD You have added ${ctx.session.cart[cartItemIndex].quantity}" of product ${productId} to your cart.`);
+      const productData = await Product.findById(productId);
+      const productArg = { ...productData.toObject(), quantity: updatedCart.items.find(item => item.product.equals(productId)).quantity };
+  
+      // Send the product information to the user
+      sendProduct(ctx, productId, productArg);
+  
+      // Send a confirmation message
+      await ctx.answerCbQuery(`You have added ${productArg.quantity} of product ${productArg.name} to your cart.`);
+    } catch (error) {
+      console.error('Error handling addQuantity action:', error);
+      await ctx.answerCbQuery('Failed to update the quantity.');
     }
-    product[0].quantity++;
-    sendProduct(ctx, productId, product[0]);
-    await ctx.answerCbQuery(`You have added ${product.quantity} of product ${product.name} to your cart.`);
-    // sendSummary(ctx, product[0]);
-});
-
-productSceneTest.action(/removeQuantity_(.+)/, async (ctx) => {
+  });
+  
+  productSceneTest.action(/removeQuantity_(.+)/, async (ctx) => {
     const productId = ctx.match[1];
-    const products = ctx.session.products;
-    let product = products.filter((p) => p._id == productId)
+  
+    try {
+      // Assuming userId is available in the context (you need to handle user authentication)
+      const userId = ctx.from.id;
 
-    const cartItemIndex = ctx.session.cart.findIndex(item => item._id === productId);
-    console.log(cartItemIndex)
-    console.log(ctx.session.cart[cartItemIndex])
-    if (cartItemIndex !== -1) {
-        ctx.session.cart[cartItemIndex].quantity -= 1;
-        product[0].quantity--;
-        // ctx.reply(`You have devrease ${ product[0].quantity}" of product ${productId} to your cart.`);
+      // Call updateCartItemQuantity to remove the product from the cart
+      const updatedCart = await updateCartItemQuantity(userId, productId, -1);
+  
+      // Fetch product data
+      const productData = await Product.findById(productId);
+      const productArg = { ...productData.toObject(), quantity: updatedCart.items.find(item => item.product.equals(productId)).quantity };
+  if(productArg.quantity===0)
+  {
+    await ctx.answerCbQuery(`You have removed ${productArg.name} of product from your cart.`);
+    await removeItemFromCart(userId,productId)
+  }
+      // Send the product information to the user
+      sendProduct(ctx, productId, productArg);
+  
+      // Send a confirmation message
+      await ctx.answerCbQuery(`You have removed ${productArg.quantity} of product ${productArg.name} from your cart.`);
+    } catch (error) {
+      console.error('Error handling removeQuantity action:', error);
+      await ctx.answerCbQuery('Failed to update the quantity.');
     }
-    if (ctx.session.cart[cartItemIndex]?.quantity == 0) {
-        let index = ctx.session.cart.map(x => x.Id).indexOf(productId);
-        ctx.session.cart.splice(index, 1);
-        await ctx.answerCbQuery(`You have delete ${product.name} from your cart.`);
-        //   ctx.session.cart.filter((p) => p._id !== productId)
-
-        // ctx.reply(`delete ${ctx.session.cart[cartItemIndex].quantity}" of product ${productId} to your cart.`);
-    }
-    // product[0].quantity--;       
-
-    sendProduct(ctx, productId, product[0]);
-    await ctx.answerCbQuery(`You  have remove ${product.quantity} of product ${product.name} to your cart.`);
-})
+  });
 
 
-
-async function sendPage(ctx) {
+async function  sendPage(ctx) {
     if (ctx.session.cleanUpState) {
-        ctx.session.cleanUpState.forEach((message) => {
+        ctx.session.cleanUpState.forEach(async(message) => {
             if (message?.type === 'product' || message?.type === 'pageNavigation' || message?.type === 'home') {
-                ctx.telegram.deleteMessage(ctx.chat.id, message.id).catch((e) => ctx.reply(e.message));
+               await ctx.telegram.deleteMessage(ctx.chat.id, message.id).catch((e) => ctx.reply(e.message));
 
             }
         });
     }
-    ctx.session.cleanUpState = []
+     ctx.session.cleanUpState = []
 
 
     try {
@@ -371,7 +368,7 @@ async function sendPage(ctx) {
           const productsData = products.products;
           console.log("Product data:", productsData);
       
-          const simplifiedProducts = productsData.map(product => ({
+          const simplifiedProducts = await productsData.map(product => ({
             ...product,
             quantity: 0,
             availableSizes: ['37', '46', '48', '67']
@@ -397,12 +394,17 @@ productSceneTest.leave(async (ctx) => {
     try {
         if (ctx.session.cleanUpState) {
             ctx.session.cleanUpState.forEach(async (message) => {
-                console.log("%c called deleteing when its leave", "color: red;")
-                if (message?.type === 'product' && message?.type === 'pageNavigation') {
-                    await ctx.deleteMessage(ctx.chat.id, message?.id);
+                 console.log("%c called deleteing when its leave", "color: red;")
+                if (message?.type === 'product' || message?.type === 'pageNavigation'  || message?.type === 'productKeyboard') {
+                    try {
+                        await ctx.telegram.deleteMessage(ctx.chat.id, message?.id);   
+                    } catch (error) {
+                       console.log("error while deleting.......",error) 
+                    }
+                
                 }
                 // {
-                //     throw new Error('The type is not defined');
+                 //     throw new Error('The type is not defined');
                 // }
 
             });
@@ -433,9 +435,9 @@ async function sendPageNavigation(ctx) {
     if (ctx.session.totalNumberProducts > perPage && ctx.session.currentPage === 1) {
         buttons = [pageSize, nextButton];
     }
-    else if (ctx.session.totalNumberProducts <= perPage) {
-        buttons = [Markup.button.callback('No More Product', 'no')]
-    }
+    // else if (ctx.session.totalNumberProducts <= perPage) {
+    //     buttons = [Markup.button.callback('No More Product', 'no')]
+    // }
 
     else if (ctx.session.totalNumberProducts >= perPage && ctx.session.currentPage === totalPages) {
         buttons = [previousButton, pageSize];

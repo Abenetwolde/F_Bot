@@ -31,7 +31,8 @@ async function getAllProducts(data) {
 
     // Parse the page and pageSize query parameters
     const page = parseInt(data.page) || 1;
-    const pageSize = parseInt(data.pageSize) || 3;
+    console.log("current page from sesstion...............",page)
+    const pageSize = parseInt(data.pageSize) || 1;
     
     // Calculate the number of products to skip
     const skip = page * pageSize-pageSize;

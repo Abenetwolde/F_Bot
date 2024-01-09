@@ -241,9 +241,9 @@ mongoClient.connect()
 
               console.log("response.data", response)
 
-              await ctx.reply(response.user.token)
+              await ctx.reply(response.token)
 
-              ctx.session.token = response.user.token;
+              ctx.session.token = response.token;
             }
             catch (error) {
               if (error.message == 'User already exists!') {
@@ -274,10 +274,10 @@ mongoClient.connect()
               });
               console.log("response.data", response)
 
-              await ctx.reply(response.user.token)
+              await ctx.reply(response.token)
 
 
-              ctx.session.token = response.user.token;
+              ctx.session.token = response.token;
             }
             catch (error) {
               if (error.message == 'User already exists!') {
@@ -566,8 +566,7 @@ process.once("SIGTERM", () => bot.stop("SIGTERM"))
 // Use telegraf's webhookCallback method to handle updates from Telegram
 // app.use(bot.webhookCallback('/'));
 
-
-// http.createServer(bot.webhookCallback('/my-secret-path')).listen(3000);
+ http.createServer(bot.webhookCallback('/my-secret-path')).listen(3000);
 
 // module.exports = async (req, res) => {
 //   try {
@@ -585,57 +584,55 @@ process.once("SIGTERM", () => bot.stop("SIGTERM"))
 //     limit: 100,
 //   },
 // })
-// const launch = async () => {
-//   try {
-//     // await bot.launch({
-//     //   dropPendingUpdates: true,
-//     //   polling: {
-//     //     timeout: 30,
-//     //     limit: 100,
-//     //   },
-//     // });
-//     bot.launch({
-//       webhook: {
-//         domain: 'https://telegrambot-iytz.onrender.com/',
-//         hookPath: '/my-secret-path',
-//       },
-//     });
-//     console.log('Bot is running!');
-//   } catch (e) {
-//     console.error(`Couldn't connect to Telegram - ${e.message}; trying again in 5 seconds...`);
+const launch = async () => {
+   try {
+  //   await bot.launch({
+  //     dropPendingUpdates: true,
+  //     polling: {
+  //       timeout: 30,
+  //       limit: 100,
+  //     },
+  //   });
+    bot.launch({
+      webhook: {
+        domain: 'https://telegrambot-iytz.onrender.com/',
+        hookPath: '/my-secret-path',
+      },
+    });
+    console.log('Bot is running!');
+  } catch (e) {
+    console.error(`Couldn't connect to Telegram - ${e.message}; trying again in 5 seconds...`);
 
-//     // Wait for 5 seconds before attempting to reconnect
-//     await new Promise((resolve) => setTimeout(resolve, 5000));
+    // Wait for 5 seconds before attempting to reconnect
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
-//     // Retry launching the bot
-//     await launch();
-//   }
-// };
+    // Retry launching the bot
+    await launch();
+  }
+};
 try {
-  // await bot.launch({
-  //   dropPendingUpdates: true,
-  //   polling: {
-  //     timeout: 30,
-  //     limit: 100,
+ 
+
+  // bot.launch({
+  //   webhook: {
+  //     domain: 'https://telegrambot-iytz.onrender.com/',
+  //     hookPath: '/my-secret-path',
   //   },
   // });
-  bot.launch({
-    webhook: {
-      domain: 'https://telegrambot-iytz.onrender.com/',
-      hookPath: '/my-secret-path',
-    },
-  });
-  console.log('Bot is running!');
-  http.createServer(bot.webhookCallback('/my-secret-path')).listen(3000);
+  // console.log('Bot is running!');
+  // http.createServer(bot.webhookCallback('/my-secret-path')).listen(3000);
+
+
+
 } catch (e) {
   console.error(`Couldn't connect to Telegram - ${e.message}; trying again in 5 seconds...`);
 
   // Wait for 5 seconds before attempting to reconnect
   new Promise((resolve) => setTimeout(resolve, 5000));
 
-  // Retry launching the bot
+
  
 }
-// launch();
+launch();
 
 

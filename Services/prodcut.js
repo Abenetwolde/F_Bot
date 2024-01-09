@@ -11,7 +11,7 @@ module.exports = {
         const category = ctx.scene?.state?.category?.id;
         const sortBy = ctx.scene?.state?.sortBy;
         const page = params.page || 1;
-        const pageSize = params.pageSize || 10;
+        const pageSize = params.pageSize || 1;
      
         // console.log("sortBy", sortBy);
     

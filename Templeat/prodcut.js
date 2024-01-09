@@ -4,23 +4,24 @@ const sharp = require('sharp');
 const { Scenes, Markup, session } = require("telegraf")
 const apiUrl = 'http://localhost:5000';
 const { ObjectId } = require('mongodb');
+const { getCart } = require('../Database/cartController');
+
 module.exports = {
     displyProdcut: async function (ctx, producs,isSearch=false) {
-        // console.log("sssssssssssproducssssssssssssssssss..............................",producs)
-        // const productsArray = Array.isArray(producs) ? producs : [producs];
+        const userId=ctx.from.id
+        const cart = await getCart(userId);
         for (const product of producs) {
             if (ctx.session.shouldContinueSending == false) {
                 break;
             }
             const productId = product._id;
 
-            const cartItemIndex = ctx.session.cart.findIndex(
-                (item) => item._id === productId
-            );
-            console.log("cartItemIndex", cartItemIndex);
-            if (cartItemIndex !== -1) {
-                product.quantity = ctx.session.cart[cartItemIndex].quantity;
+            const cartItem = cart.items.find((item) => item.product._id.toString() === productId);
+
+            if (cartItem) {
+                product.quantity = cartItem.quantity;
             }
+
             // ctx.session.availableSizes[productId] = ['37', '46', '48', '67'];
             ctx.session.currentImageIndex[productId] = 0;
             ctx.session.viewMore[productId] = false;
@@ -36,9 +37,9 @@ console.log("messageinfo", messageInfo)
     sendProduct: async function (ctx, productId, product, iscart) {
 console.log("reach",productId)
 console.log("reach prodcut",product)
-        // const product =  ctx.session.iscart?ctx.session.cart:products
-        console.log("product id............", productId)
-        console.log("product............", product)
+//         // const product =  ctx.session.iscart?ctx.session.cart:products
+//         console.log("product id............", productId)
+//         console.log("product............", product)
         // Generate a caption for this product by concatenating all of its properties except for the images property
         let caption = '';
         caption = ` ${product?.name}\n ▪️${product?.price} Birr \n ▪️${product?.discription}\n
@@ -136,16 +137,16 @@ console.log("reach prodcut",product)
             //     ctx.reply(caption, inlineButtons);
             // });
             // If there is no previous message ID, use the replyWithPhoto method to send a new message with this product's image
-            const pq = ctx.session.products.find(product => product._id === productId);
+          
             const message = await ctx.replyWithPhoto({ source: imageBuffer }, {
                 caption: caption,
                 ...Markup.inlineKeyboard([
-                /*     pq == 0 ? */[
+                    !product.quantity/*   === 0 */ ?[
                         Markup.button.callback('⬅️', `previous_${productId}`),
                         ctx.session.viewMore[productId] ? Markup.button.callback('View Less', `viewLess_${productId}`) : Markup.button.callback('View More', `viewMore_${productId}`),
                         Markup.button.callback('➡️', `next_${productId}`),
                         // ...(ctx.session.viewMore[productId] ? [Markup.button.callback('Buy', `buy_${productId}`)] : [])
-                    ] /* : [] */,
+                    ] : [],
                     ...(product.quantity > 0 ? [
                         [
                             Markup.button.callback('-', `removeQuantity_${productId}`),

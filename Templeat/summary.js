@@ -1,6 +1,7 @@
 const axios = require('axios');
 const sharp = require('sharp');
-const { Scenes, Markup, session } = require("telegraf")
+const { Scenes, Markup, session } = require("telegraf");
+const { getCart } = require('../Database/cartController');
 const apiUrl = 'http://localhost:5000'; 
 module.exports = {
 
@@ -14,14 +15,17 @@ module.exports = {
         let orderItems = []
         let usernote=null
         let datePick=null
-        const cartProducts = ctx.session.cart;
+        // const cartProducts = ctx.session.cart;
+        const userId=ctx.from.id
+
+        const cartProducts = await getCart(userId);
         console.log("cartProducts", cartProducts)
-        cartProducts.forEach((product, productId) => {
+        cartProducts.items.forEach((product, productId) => {
             if (product.quantity > 0) {
                 // console.log(ctx.session.quantity[product._id], product._id)//filter the product quantity is greater than o
-                summary += `${product.name}: ${product.quantity} * ${product.price} = ${product.quantity * product.price} ${product.currency}\n`;
+                summary += `${product.product.name}: ${product.quantity} * ${product.product.price} = ${product.quantity * product.product.price}\n`;
                 totalQuantity += product.quantity;
-                totalPrice += product.quantity * product.price;
+                totalPrice += product.quantity * product.product.price;
                 orderItems.push({
                         "product":product._id,
                         "name": product.name,
@@ -68,7 +72,7 @@ module.exports = {
                 ).catch(() => { });;
             }
             if (totalQuantity == 0) {
-                ctx.telegram.deleteMessage(ctx.chat.id, messageId)
+               await ctx.telegram.deleteMessage(ctx.chat.id, messageId)
                 /* .catch((e) => {ctx.reply(e.message) }); */
 
                const nocartmessage= await ctx.reply("sorry you have no product on the cart.please go to home and buy", {
