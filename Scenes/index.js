@@ -3,7 +3,7 @@ const { productSceneTest } = require('./product');
 const { categoryScene } = require('./category');
 const { cart } = require('./cart');
 const { searchProduct } = require('./searchProdcut');
-const { dateScene } = require("./dateScene")
+const { selectePaymentType } = require("./selectePaymentTypeScene")
 const { noteScene } = require("./note")
 const { paymentScene } = require("./payment");
 const { detailScene } = require('./detail');
@@ -14,7 +14,7 @@ module.exports = {
     categoryScene,
     cart,
     searchProduct,
-    dateScene,
+    selectePaymentType,
     noteScene,
     paymentScene,
     detailScene

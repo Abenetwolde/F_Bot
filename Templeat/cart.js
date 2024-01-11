@@ -34,7 +34,7 @@ module.exports = {
     // },
 
      sendCartProduct: async function (ctx, productId, cart, iscart) {
-       
+      
         // const product =  ctx.session.iscart?ctx.session.cart:products
         console.log("product",cart)
         // Generate a caption for this product by concatenating all of its properties except for the images property
@@ -48,15 +48,16 @@ module.exports = {
         //     }
         // });
         // If the viewMore flag for this product is false and the caption is longer than 20 characters, truncate it and add an ellipsis
-        if (!ctx.session?.viewMore[productId] && caption.length > 20) {
+        if (ctx.session?.viewMore&&!ctx.session?.viewMore[productId] && caption.length > 20) {
             caption = caption.substring(0, 50) + '...';
         }
         // Check if the image for this product exists
-        if (!cart.product.images || !cart.product.images[ctx.session.currentImageIndex[productId]]) {
-            return;
-        }
+        // if (cart.product.images&&!cart.product.images ||cart.product.images&& !cart.product.images[ctx.session.currentImageIndex&&ctx.session.currentImageIndex[productId]]) {
+        //     return;
+        // }
         // Get the current image of this product from its images array using the current image productId stored in the session data
-        const image = cart.product.images[ctx.session.currentImageIndex[productId]];
+        const image = cart?.product?.images[0];
+        console.log("imgaeeeeeeeeeee.........",image)
         if (ctx.session.cleanUpState && ctx.session.cleanUpState.find(message => message.type === 'cart' && message.productId === productId)) {
             const messageId = ctx.session.cleanUpState.find(message => message.type === 'cart' && message.productId === productId).id;
             // If there is a previous message ID, use the editMessageMedia method to edit its media and update its image

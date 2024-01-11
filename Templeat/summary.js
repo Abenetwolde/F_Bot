@@ -13,8 +13,8 @@ module.exports = {
         let totalQuantity = 0;
         let totalPrice = 0;
         let orderItems = []
-        let usernote=null
-        let datePick=null
+        let usernote=ctx.session?.isWaiting?.note||null
+        let paymentType=ctx.session?.paymentType||null
         // const cartProducts = ctx.session.cart;
         const userId=ctx.from.id
 
@@ -42,16 +42,19 @@ module.exports = {
             // orderItems.push({"deliveryDate": deliveryDate})
         }
 
-        if (note) {
-            summary += `Note for seller: ${note}\n`
-            usernote=note
+        if (usernote) {
+            summary += `Note for seller: ${usernote}\n`
+          
             // orderItems.push({ "note": note }, )
+        }
+        if(paymentType){
+            summary += `Payment Type: ${paymentType}\n`
         }
         summary += `\nTotal Quantity: ${totalQuantity}\nTotal Price: ${totalPrice} ETB`;
         console.log("summary", summary)
 
         // Check if there is a previous summary message ID stored in the cleanUpState array
-        if (ctx.session.cleanUpState && ctx.session.cleanUpState.find(message => message.type === 'summary')) {
+        if (ctx.session.cleanUpState && ctx.session.cleanUpState.find(message => message?.type === 'summary')) {
             const messageId = ctx.session.cleanUpState.find(message => message.type === 'summary').id;
             console.log(messageId)
             // If there is a previous summary message ID, use the editMessageText method to edit its text and update its content
@@ -65,7 +68,7 @@ module.exports = {
                     {
                         ...Markup.inlineKeyboard([
                             [
-                                Markup.button.callback('Procced to CheckOut', 'checkOut')
+                                Markup.button.callback('Procced to CheckOut', 'proceedToCheckout')
                             ]
                         ])
                     }
@@ -97,7 +100,7 @@ module.exports = {
         const message =   await ctx.replyWithHTML(summary, {
                 ...Markup.inlineKeyboard([
                     [
-                        Markup.button.callback('Procced to CheckOut', 'checkOut')
+                        Markup.button.callback('Procced to CheckOut', 'proceedToCheckout')
                     ]
                 ])
             })

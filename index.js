@@ -1,6 +1,5 @@
 
 const { Telegraf, Markup, InputFile, Scene, session, WizardScene, Scenes } = require('telegraf');
-// const TelegrafI18n = require('telegraf-i18next');
 const { i18next } = require('telegraf-i18next');
 const { t } = require('telegraf-i18next')
 const { reply } = require('telegraf-i18next')
@@ -9,12 +8,10 @@ const http = require('http');
 const LocalSession = require('telegraf-session-local');
 const axios = require('axios');
 const fs = require('fs').promises;
-const { homeScene, productSceneTest, categoryScene, cart, searchProduct, detailScene, dateScene, noteScene, paymentScene } = require('./Scenes/index.js');
+const { homeScene, productSceneTest, categoryScene, cart, searchProduct, detailScene, selectePaymentType, noteScene, paymentScene } = require('./Scenes/index.js');
 const { checkUserToken } = require('./Utils/checkUserToken');
 const { Mongo } = require("@telegraf/session/mongodb");
-const { checkUserLanguage } = require('./Utils/language.js');
 const { MongoClient } = require('mongodb');
-const { sendProduct } = require('./Templeat/prodcut.js');
 const { createUser } = require('./Database/UserController.js');
 
 const bot = new Telegraf("6372866851:AAE3TheUZ4csxKrNjVK3MLppQuDnbw2vdaM", {
@@ -23,9 +20,7 @@ const bot = new Telegraf("6372866851:AAE3TheUZ4csxKrNjVK3MLppQuDnbw2vdaM", {
 require("dotenv").config();
 const connectDatabase = require('./config/database.js');
 const { getSingleProduct } = require('./Database/productcontroller.js');
-// const store = Redis({
-// 	url: "redis://127.0.0.1:6380",
-// });
+
 connectDatabase()
 bot.use(i18next({
   debug: true,
@@ -42,7 +37,7 @@ bot.use(i18next({
   }
 }));
 const { Stage } = Scenes;
-const stage = new Stage([homeScene, searchProduct, detailScene, productSceneTest, categoryScene, cart, dateScene, noteScene, paymentScene/* ,productScene,latestScene,popularScene */])
+const stage = new Stage([homeScene, searchProduct, detailScene, productSceneTest, categoryScene, cart, selectePaymentType, noteScene, paymentScene/* ,productScene,latestScene,popularScene */])
 
 
 // bot.use(session({ store }));
@@ -83,16 +78,13 @@ mongoClient.connect()
 
     });
 
-    // Create a new Telegraf bot
 
-
-    // Use the session middleware with the MongoDB store
     bot.use(session({ store, getSessionKey: (ctx) => ctx.from?.id.toString(), }));
 
-    // Rest of your bot setup...
+    
     bot.use((ctx, next) => {
       if (!ctx.session) {
-        ctx.session = {}; // Initialize session if not exists
+        ctx.session = {}; 
       }
       if (ctx.session.locale) {
         ctx.i18next.changeLanguage(ctx.session.locale);
@@ -151,7 +143,6 @@ mongoClient.connect()
       console.log(`Updating database for user ${userId}. Total time spent: ${totalTimeSpent}`);
     }
 
-    // Function to format time in HH:MM:SS
     function formatTime(milliseconds) {
       const seconds = Math.floor(milliseconds / 1000) % 60;
       const minutes = Math.floor(milliseconds / (1000 * 60)) % 60;
@@ -213,9 +204,7 @@ mongoClient.connect()
         } catch (error) {
           console.error("error while deleting message when the bot start", error)
         }
-        // Check if the user has selected a language.
         if (!ctx.session.locale) {
-          // If not, ask the user to select a language.
           const message = await ctx.reply('Please choose your language', Markup.inlineKeyboard([
             Markup.button.callback('English', 'set_lang:en'),
             Markup.button.callback('አማርኛ', 'set_lang:ru')
@@ -225,14 +214,7 @@ mongoClient.connect()
           console.log("userToken", userToken)
 
           if (userToken == null) {
-            // If the user doesn't have a token, register them.
             try {
-              // const response = await axios.post('http://localhost:5000/api/createuser', {
-              //   telegramid: ctx.from.id,
-              //   name: ctx.from.first_name,
-              //   last: ctx.from.last_name
-              //   // other necessary data...       
-              // });
               const response = await createUser({
                 telegramid: ctx.from.id,
                 name: ctx.from.first_name,
@@ -254,19 +236,11 @@ mongoClient.connect()
           }
 
         } else {
-          // If the user has selected a language, check if they have a token.
           const userToken = await checkUserToken(`${ctx.from.id}`, ctx)
           console.log("userToken", userToken)
 
           if (userToken == null) {
-            // If the user doesn't have a token, register them.
             try {
-              // const response = await axios.post('http://localhost:5000/api/createuser', {
-              //   telegramid: ctx.from.id,
-              //   name: ctx.from.first_name,
-              //   last: ctx.from.last_name
-              //   // other necessary data...       
-              // });
               const response = await createUser({
                 telegramid: ctx.from.id,
                 name: ctx.from.first_name,
@@ -290,7 +264,7 @@ mongoClient.connect()
           await ctx.scene.enter('homeScene');
         }
       }
-      // ctx.replyWithPhoto("https://backend-vg1d.onrender.com/393a8c4d-b965-45ab-83ad-8a774141fa12.png")
+      //  ctx.replyWithPhoto("https://backend-vg1d.onrender.com/393a8c4d-b965-45ab-83ad-8a774141fa12.png")
 
     });
     bot.action(/set_lang:(.+)/, async (ctx) => {
@@ -309,9 +283,7 @@ mongoClient.connect()
 
 bot.on("pre_checkout_query", async (ctx) => {
   await ctx.answerPreCheckoutQuery(true)
-  /*     respond to a pre-checkout query sent by a user when they are about to make a payment. 
-        By passing in true, 
-      this code is indicating that the payment should be allowed to proceed. */
+
 })
 /* This code uses the getWebhookInfo method to check 
    if a webhook is set for your bot. If a webhook is set, it may cause conflicts with the getUpdates 
@@ -363,7 +335,7 @@ const storeLocation = {
   longitude: 38.78894603158134, // Replace with the actual longitude of your store
 };
 
-// Function to calculate distance
+
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371; // Radius of the Earth in km
   const dLat = deg2rad(lat2 - lat1);
@@ -422,7 +394,6 @@ bot.on < "location" > ('location', async (ctx) => {
     storeLocation.longitude
   );
 
-  // Set price based on the distance (replace with your pricing logic)
   let price;
   if (distance < 5) {
     price = '$10 Birr';
@@ -437,14 +408,6 @@ bot.on < "location" > ('location', async (ctx) => {
     return travelTimeInMinutes;
   };
 
-  // Example coordinates (replace with actual coordinates)
-  // const origin = { latitude: 37.7749, longitude: -122.4194 }; // San Francisco, CA
-  // const destination = { latitude: 34.0522, longitude: -118.2437 }; // Los Angeles, CA
-
-  // // Calculate distance between origin and destination
-  // const distance = calculateDistance(origin.latitude, origin.longitude, destination.latitude, destination.longitude);
-
-  // Estimate travel time (assuming an average speed of 60 km/h)
   const averageSpeed = 60; // in kilometers per hour
   const travelTime = estimateTravelTime(distance, averageSpeed);
   ctx.reply(`Estimated travel time: ${travelTime.toFixed(2)} minutes`);
@@ -456,11 +419,6 @@ bot.on < "location" > ('location', async (ctx) => {
 });
 
 
-// bot.action("Home", async (ctx) => {
-//   await ctx.scene.enter("homeScene")
-//   console.log("go to Home called")
-//   // await ctx.scene.leave();
-// });
 bot.catch(async (err, ctx) => {
   console.log(`Error while handling update ${ctx.update.update_id}:`, err)
 
@@ -502,69 +460,10 @@ bot.catch(async (err, ctx) => {
 })
 
 
-// You can add additional logic here if needed
-
-// Don't send a message (or take any other action)
-
-// Check every 1 minute
-// bot.on('chosen_inline_result', async (ctx) => {
-//   // Store the message ID when a user selects an inline result
-//   const resultId = ctx.chosenInlineResult.result_id;
-//   console.log("resultId",resultId)
-//   ctx.session[resultId] = ctx.chosenInlineResult.inline_message_id;
-// });
-
-// bot.on('callback_query', async (ctx) => {
-//   await ctx.answerCbQuery('Processing your request...');
-//   console.log("reach on callback_query")
-//   // const productId = ctx.callbackQuery.data;
-//   // console.log("productId", productId)// Get the product ID from the callback data
-//   // const product = products.find((product) => product.id == productId); // Find the product in your products data
-//   // ctx.scene.enter('product');
-//   // if (product) {
-//   //   console.log("there is aprodcut")
-
-//   // }
-// });
-// bot.on('message', async (ctx, next) => {
-//   if (ctx.message.text === 'Home') {
-//     for (const message of ctx.session.messages) {
-
-//       await ctx.telegram.deleteMessage(message.chat.id, message.id);
-//     }
-
-//     ctx.session.messages = [];
-
-//     await ctx.scene.enter('homeScene');
-
-//     return;
-//   }
-//   else if (ctx.message.text === 'Category') {
-//     for (const message of ctx.session.messages) {
-//       await ctx.telegram.deleteMessage(message.chat.id, message.id);
-//     }
-
-//     ctx.session.messages = [];
-
-//     await ctx.scene.enter('category');
-
-//     return;
-//   }
-//   return next();
-// });
 
 process.once("SIGINT", () => bot.stop("SIGINT"))
 process.once("SIGTERM", () => bot.stop("SIGTERM"))
-//  bot.telegram.setWebhook('https://tiny-lime-earthworm.cyclic.app/my-secret-path');
-// bot.launch({
-//   webhook: {
-//     domain: 'https://boxtest.onrender.com/',
-//     hookPath: '/my-secret-path',
-//   },
-// });
-//  bot.telegram.setWebhook('https://boxtest.onrender.com/my-secret-path');
-// Use telegraf's webhookCallback method to handle updates from Telegram
-// app.use(bot.webhookCallback('/'));
+
 
  http.createServer(bot.webhookCallback('/my-secret-path')).listen(3000);
 
@@ -586,13 +485,13 @@ process.once("SIGTERM", () => bot.stop("SIGTERM"))
 // })
 const launch = async () => {
    try {
-  //   await bot.launch({
-  //     dropPendingUpdates: true,
-  //     polling: {
-  //       timeout: 30,
-  //       limit: 100,
-  //     },
-  //   });
+    // await bot.launch({
+    //   dropPendingUpdates: true,
+    //   polling: {
+    //     timeout: 30,
+    //     limit: 100,
+    //   },
+    // });
     bot.launch({
       webhook: {
         domain: 'https://telegrambot-iytz.onrender.com/',
