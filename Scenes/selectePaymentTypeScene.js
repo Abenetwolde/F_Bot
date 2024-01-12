@@ -17,7 +17,7 @@ const selectePaymentType = new Scenes.BaseScene("selectePaymentType")
  */
 
 selectePaymentType.enter(async (ctx) => {
-    
+    await sendProdcutSummary(ctx)
   const selec1message= await ctx.reply("Just two more steps before we're able to generate your invoice! 🙂",)
     Markup.keyboard([
         ["🏠 Back to Home"]
@@ -33,12 +33,13 @@ selectePaymentType.enter(async (ctx) => {
 })
 selectePaymentType.action("online", async (ctx) => {
     ctx.session.paymentType="Online"
-    await sendProdcutSummary(ctx)
+    // await sendProdcutSummary(ctx)
     await ctx.scene.enter("PAYMENT_SCENE");
 });
 selectePaymentType.action("cash", async (ctx) => {
     ctx.session.paymentType="Chash"
-    await sendProdcutSummary(ctx)
+    ctx.session.cancelOrder=true
+    // await sendProdcutSummary(ctx)
     await ctx.reply("your order is seccessfully............ here is your order number #23784 ")
     await ctx.scene.leave()
     // await ctx.scene.enter("PAYMENT_SCENE");
@@ -50,7 +51,7 @@ selectePaymentType.leave(async (ctx) => {
             // Iterate over the cleanUpState array
              for (const message of ctx.session.cleanUpState) {
                 // Check if the message exists before attempting to delete it
-                if (message?.type === 'selectPayment') {
+                if (message?.type === 'selectPayment'|| message?.type === 'summary') {
                     await ctx.telegram.deleteMessage(ctx.chat.id, message.id);
                 }
             }

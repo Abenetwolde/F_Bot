@@ -485,19 +485,19 @@ process.once("SIGTERM", () => bot.stop("SIGTERM"))
 // })
 const launch = async () => {
    try {
-    // await bot.launch({
-    //   dropPendingUpdates: true,
-    //   polling: {
-    //     timeout: 30,
-    //     limit: 100,
-    //   },
-    // });
-    bot.launch({
-      webhook: {
-        domain: 'https://telegrambot-iytz.onrender.com/',
-        hookPath: '/my-secret-path',
+    await bot.launch({
+      dropPendingUpdates: true,
+      polling: {
+        timeout: 30,
+        limit: 100,
       },
     });
+    // bot.launch({
+    //   webhook: {
+    //     domain: 'https://telegrambot-iytz.onrender.com/',
+    //     hookPath: '/my-secret-path',
+    //   },
+    // });
     console.log('Bot is running!');
   } catch (e) {
     console.error(`Couldn't connect to Telegram - ${e.message}; trying again in 5 seconds...`);

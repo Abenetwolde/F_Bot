@@ -17,10 +17,6 @@ const orderSchema = new mongoose.Schema({
     },
     orderItems: [
         {
-            name: {
-                type: String,
-                required: true
-            },
             quantity: {
                 type: Number,
                 required: true
@@ -60,11 +56,6 @@ const orderSchema = new mongoose.Schema({
         type: String,
         enum: ["pending", "completed"],
         default: "pending",
-    },
-    delivery: {
-        type: String,
-        enum: ["Yes", "No"],
-        default: "No",
     },
     orderfromtelegram:{
         type : Boolean ,

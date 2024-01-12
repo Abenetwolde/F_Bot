@@ -15,6 +15,7 @@ module.exports = {
         let orderItems = []
         let usernote=ctx.session?.isWaiting?.note||null
         let paymentType=ctx.session?.paymentType||null
+       const cancelorder= ctx.session.cancelOrder
         // const cartProducts = ctx.session.cart;
         const userId=ctx.from.id
 
@@ -100,7 +101,7 @@ module.exports = {
         const message =   await ctx.replyWithHTML(summary, {
                 ...Markup.inlineKeyboard([
                     [
-                        Markup.button.callback('Procced to CheckOut', 'proceedToCheckout')
+                        Markup.button.callback(`${cancelorder?'Cancel the Order':"Procced to CheckOut"}`, 'proceedToCheckout')
                     ]
                 ])
             })

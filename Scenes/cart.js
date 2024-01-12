@@ -109,6 +109,7 @@ cart.hears('Home', async (ctx) => {
 
 });
 cart.action("proceedToCheckout", async (ctx) => {
+  // await sendProdcutSummary(ctx)
   await ctx.scene.enter("NOTE_SCENE")
 //   await ctx.reply("Would you like to leave a note along with the order?", Markup.inlineKeyboard([
 //     Markup.button.callback( "⏩ Skip", 'Skip')
