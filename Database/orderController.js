@@ -1,15 +1,41 @@
-exports.createOrder = async (userId, orderData) => {
+const Cart = require("../Model/cart");
+const Order=  require("../Model/order") ;
+async function calculateTotalPrice(cartItems) {
+  let totalPrice = 0;
+  for (const cartItem of cartItems.items) {
+    const product = cartItem.product;
+    const quantity = cartItem.quantity;
+    totalPrice += product.price * quantity;
+  }
+  return totalPrice;
+}
+exports.createOrder = async (userId, orderInformation, cartItems) => {
   try {
-    const newOrder =  new Order({
-      ...orderData,
-      user: userId,
+    console.log("cart Item.......s",cartItems)
+    const totalPrice = await calculateTotalPrice(cartItems);
+
+    // Create a new order document in the database
+    const order = await Order.create({
+      telegramid: userId,
+      orderItems: cartItems.items.map(cartItem => ({
+        product: cartItem.product._id,
+        quantity: cartItem.quantity,
+      })),
+      totalPrice,
+      paymentType:orderInformation.paymentType,
+      orderfromtelegram:true,
+      shippingInfo:{
+        location:orderInformation.location,
+        note:orderInformation.note,
+        phoneNo:orderInformation.phoneNo
+      }
+  
     });
 
-    // Calculate total price based on order items
-    newOrder.totalPrice = calculateTotalPrice(newOrder.orderItems);
+    // Clear the user's cart after creating the order
+    await Cart.findOneAndUpdate({ user: userId }, { $set: { items: [] } });
 
-    const savedOrder = await newOrder.save();
-    return savedOrder._id;
+    return order;
   } catch (error) {
     console.error('Error creating order:', error);
     throw new Error('Failed to create order.');
@@ -81,6 +107,6 @@ exports.cancelOrder = async (orderId) => {
 };
 
 // Helper function to calculate total price based on order items
-function calculateTotalPrice(orderItems) {
-  return orderItems.reduce((total, item) => total + (item.quantity * item.product.price), 0);
-}
+// function calculateTotalPrice(orderItems) {
+//   return orderItems.reduce((total, item) => total + (item.quantity * item.product.price), 0);
+// }

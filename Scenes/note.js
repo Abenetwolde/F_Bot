@@ -2,28 +2,18 @@ const { Scenes, Markup } = require("telegraf")
 const { sendProdcutSummary } = require("../Templeat/summary")
 const axios = require('axios');
 const { createOrder } = require("../Database/orderController");
+const { getCart } = require("../Database/cartController");
 const apiUrl = 'http://localhost:5000';
 
 const noteScene = new Scenes.BaseScene("NOTE_SCENE")
-
-/**
- * Upon entering, scene contains:
- * 1. Voucher applied, if any (i.e. ctx.scene.state.voucher)
- * 2. Delivery date, if any (i.e. ctx.scene.state.date)
- * 
- * isWaiting: {
- *      status: true,               // If user is in text-only mode
- * }
- */
-let orderResponse = null
 noteScene.enter(async (ctx) => {
     ctx.session.cleanUpState = []
     ctx.session.timeout = []
     ctx.session.isWaiting = {
         status: false
     }
-    const summaymessage = await sendProdcutSummary(ctx)
-    console.log("summary message from note",summaymessage)
+    // const summaymessage = await sendProdcutSummary(ctx)
+    // console.log("summary message from note",summaymessage)
     const note1message = await ctx.reply("Last step before we're able to generate your invoice! 🙂",)
     Markup.keyboard([
         ["🏠 Back to Home"]
@@ -36,7 +26,7 @@ noteScene.enter(async (ctx) => {
     ]))
     ctx.session.cleanUpState.push({ id: note1message.message_id, type: 'note' });
     ctx.session.cleanUpState.push({ id: note1message2.message_id, type: 'note' });
-    ctx.session.cleanUpState.push(summaymessage);
+    // ctx.session.cleanUpState.push(summaymessage);
 
 })
 noteScene.action("yes", async (ctx) => {
@@ -71,9 +61,21 @@ noteScene.on("message", async (ctx) => {
 });
 
 noteScene.action("confirm", async (ctx) => {
-    // User confirms the note, send summary and move to the next scene
-    // await sendProdcutSummary(ctx);
-    await ctx.scene.enter("selectePaymentType");
+    const confirmedNote = ctx.session.isWaiting.note;
+    // Assuming you have an orderInformation session already
+    ctx.session.orderInformation = {
+        ...ctx.session.orderInformation,
+        note: confirmedNote,
+    };
+
+    const userId = ctx.from.id;
+    const cartItems = await getCart(userId)
+
+    const orderInformation = ctx.session.orderInformation || {};
+    const order = await createOrder(userId, orderInformation, cartItems);
+  
+    ctx.reply(`Order created successfully! Order ID: ${order._id}`);
+    // await ctx.scene.enter("selectePaymentType");
 
 });
 
@@ -94,16 +96,16 @@ noteScene.action("edit", async (ctx) => {
 
 //             const result = await sendProdcutSummary(ctx, ctx.scene.state.deliveryDate, ctx.session.isWaiting.note)
 // console.log("resut...........",result)
-            const orderData={
-                shippingInfo: {   
-                    note:result.usernote ,
-                  },
-                  orderItems:result.orderItems,
-                  orderfromtelegram:true,
-                  telegramid: ctx.from.id,
-                  totalPrice:result.totalPrice,
+            // const orderData={
+            //     shippingInfo: {   
+            //         note:result.usernote ,
+            //       },
+            //       orderItems:result.orderItems,
+            //       orderfromtelegram:true,
+            //       telegramid: ctx.from.id,
+            //       totalPrice:result.totalPrice,
 
-                }
+            //     }
 //             console.log("resultFromnote", result)
 //             try {
 //                 const orderResponse= await createOrder(orderData)

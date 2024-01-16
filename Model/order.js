@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({
     shippingInfo: {
-        address: {
+        location: {
             type: String,
             required: false
         },
@@ -11,7 +11,7 @@ const orderSchema = new mongoose.Schema({
             required: false
         },
         phoneNo: {
-            type: Number,
+            type: String,
             required: false
         },
     },
@@ -42,6 +42,11 @@ const orderSchema = new mongoose.Schema({
         type: String,
         enum: ["pending", "completed"],
         default: "pending",
+      },
+      paymentType: {
+        type: String,
+        enum: ["Cash", "Online"],
+      
       },
     totalPrice: {
         type: Number,

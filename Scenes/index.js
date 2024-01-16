@@ -7,6 +7,10 @@ const { selectePaymentType } = require("./selectePaymentTypeScene")
 const { noteScene } = require("./note")
 const { paymentScene } = require("./payment");
 const { detailScene } = require('./detail');
+const { informationCash } = require('./informationChash');
+// const { informationChash } = require('./informationChash');
+informationCash
+
 
 module.exports = {
     homeScene,
@@ -17,5 +21,6 @@ module.exports = {
     selectePaymentType,
     noteScene,
     paymentScene,
-    detailScene
+    detailScene,
+    informationCash
 }
