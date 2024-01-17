@@ -32,16 +32,17 @@ selectePaymentType.enter(async (ctx) => {
     ctx.session.cleanUpState.push({ id: selec2message.message_id, type: "selectPayment" }) // Update as calendar type to prevent message from deletion in midst of selecting a date
 })
 selectePaymentType.action("online", async (ctx) => {
-    ctx.session.paymentType = "Online"
+    ctx.session.orderInformation = {
+        paymentType: 'online'
+    }
     // await sendProdcutSummary(ctx)
     await ctx.scene.enter("NOTE_SCENE");
 });
 selectePaymentType.action("cash", async (ctx) => {
     // ctx.session.paymentType="Chash"
-    ctx.session.cancelOrder = true
+    // ctx.session.cancelOrder = true
 
     ctx.session.orderInformation = {
-        // ...ctx.session.orderInformation,
         paymentType: 'Cash'
     }
     await ctx.scene.enter("informationCash");

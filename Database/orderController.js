@@ -11,10 +11,10 @@ async function calculateTotalPrice(cartItems) {
 }
 exports.createOrder = async (userId, orderInformation, cartItems) => {
   try {
-    console.log("cart Item.......s",cartItems)
+    console.log("cart Item.......s", cartItems);
     const totalPrice = await calculateTotalPrice(cartItems);
 
-    // Create a new order document in the database
+    // Create a new order document in the database without population
     const order = await Order.create({
       telegramid: userId,
       orderItems: cartItems.items.map(cartItem => ({
@@ -22,25 +22,28 @@ exports.createOrder = async (userId, orderInformation, cartItems) => {
         quantity: cartItem.quantity,
       })),
       totalPrice,
-      paymentType:orderInformation.paymentType,
-      orderfromtelegram:true,
-      shippingInfo:{
-        location:orderInformation.location,
-        note:orderInformation.note,
-        phoneNo:orderInformation.phoneNo
+      paymentType: orderInformation.paymentType,
+      orderfromtelegram: true,
+      shippingInfo: {
+        location: orderInformation.location,
+        note: orderInformation.note,
+        phoneNo: orderInformation.phoneNo
       }
-  
     });
+
+    // Populate the orderItems.product field after creating the order
+    const populatedOrder = await Order.findById(order._id).populate('orderItems.product').exec();
 
     // Clear the user's cart after creating the order
     await Cart.findOneAndUpdate({ user: userId }, { $set: { items: [] } });
 
-    return order;
+    return populatedOrder;
   } catch (error) {
     console.error('Error creating order:', error);
     throw new Error('Failed to create order.');
   }
 };
+
 
 exports.getOrders = async () => {
   try {

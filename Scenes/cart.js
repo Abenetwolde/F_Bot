@@ -40,10 +40,8 @@ cart.action(/(removeQuantity)_(.+)/, async (ctx) => {
     const productId = ctx.match[2];
     const userId = ctx.from.id;
 
-    // Use updateCartItemQuantity to update the cart quantity
-    const updatedCart = await updateCartItemQuantity(userId, productId, -1);
+ await updateCartItemQuantity(userId, productId, -1);
 
-    // Fetch the updated cart using getCart
     const cart = await getCart(userId);
 
     const cartItemIndex = cart.items.findIndex(item => item.product._id.toString() === productId);

@@ -7,7 +7,7 @@ const apiUrl = 'http://localhost:5000';
 const _ = require("lodash");
 const { checkUserToken } = require("../Utils/checkUserToken");
 let priceLabels = []
-const paymentScene = new Scenes.BaseScene("PAYMENT_SCENE")
+const paymentScene = new Scenes.BaseScene("paymentScene")
 
 /**
  * Upon entering, scene contains:

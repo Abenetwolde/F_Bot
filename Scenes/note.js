@@ -73,10 +73,29 @@ noteScene.action("confirm", async (ctx) => {
 
     const orderInformation = ctx.session.orderInformation || {};
     const order = await createOrder(userId, orderInformation, cartItems);
-  
-    ctx.reply(`Order created successfully! Order ID: ${order._id}`);
+  console.log("order information..........",order)
+    if (orderInformation.paymentType && orderInformation.paymentType.toLowerCase() === 'online') {
+        const payData =
+            JSON.stringify({
+              totalPrice: order.totalPrice,
+              orderItems: order.orderItems,
+              orderId: order._id.toString(), // Convert ObjectId to string
+            })
+          
+      
+          await ctx.reply(
+            `Order created successfully! Order ID: ${order._id}\nYou chose ${orderInformation.paymentType} payment.`,
+            Markup.inlineKeyboard([
+              Markup.button.callback('Pay', `pay:${payData}`),
+            ])
+          );
+      } else {
+        // If it's not online, simply reply with the order ID
+        await ctx.reply(`Order created successfully! Order ID: ${order._id}`);
+        ctx.session.orderInformation={}
+      }
     // await ctx.scene.enter("selectePaymentType");
-
+    await ctx.scene.leave()
 });
 
 noteScene.action("edit", async (ctx) => {
@@ -88,7 +107,23 @@ noteScene.action("edit", async (ctx) => {
     });
     ctx.session.cleanUpState.push({ id: note5mesagge.message_id, type: 'note' });
 });
-
+noteScene.action(/pay:(\d+):(.+):(.+)/, async (ctx) => {
+    // Extract the passed data from the button callback
+    const [, totalPrice, orderItems, orderId] = ctx.match;
+  
+    // Convert orderItems to an array (assumes it's a JSON string representation)
+    const orderItemsArray = JSON.parse(orderItems);
+  
+    // Reply with a message acknowledging the payment
+    await ctx.reply(`Payment received for Order ID: ${orderId}. Total Amount: ${totalPrice}`);
+  
+    // Enter the payment scene with the necessary data
+    ctx.scene.enter("paymentScene", {
+      totalPrice: +totalPrice, // Convert to a number if needed
+      orderItems: orderItemsArray,
+      orderId,
+    });
+  });
 // noteScene.on("callback_query", async (ctx) => {
 //     if ((ctx.session.isWaiting && ctx.session.isWaiting.status)) {
 //         if (ctx.callbackQuery.data === "Yes") {
