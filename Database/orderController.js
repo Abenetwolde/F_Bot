@@ -63,6 +63,20 @@ exports.getOrders = async () => {
   }
 };
 
+exports.getOrderById= async (orderId) => {
+  try {
+    const order = await Order.findById(orderId).populate('orderItems.product');
+
+    if (!order) {
+      throw new Error(`Order with ID ${orderId} not found.`);
+    }
+
+    return order;
+  } catch (error) {
+    console.error('Error fetching order by ID:', error);
+    throw new Error('Failed to fetch order by ID.');
+  }
+};
 exports.updateOrderQuantity = async (orderId, productIndex, newQuantity) => {
   try {
     const order = await Order.findById(orderId);

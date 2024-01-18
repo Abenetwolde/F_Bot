@@ -1,7 +1,7 @@
 const { Scenes, Markup } = require("telegraf")
 const { sendProdcutSummary } = require("../Templeat/summary")
 const axios = require('axios');
-const { createOrder } = require("../Database/orderController");
+const { createOrder, getOrderById } = require("../Database/orderController");
 const { getCart } = require("../Database/cartController");
 const apiUrl = 'http://localhost:5000';
 
@@ -60,70 +60,49 @@ noteScene.on("message", async (ctx) => {
     }
 });
 
-noteScene.action("confirm", async (ctx) => {
+noteScene.action('confirm', async (ctx) => {
     const confirmedNote = ctx.session.isWaiting.note;
-    // Assuming you have an orderInformation session already
     ctx.session.orderInformation = {
-        ...ctx.session.orderInformation,
-        note: confirmedNote,
+      ...ctx.session.orderInformation,
+      note: confirmedNote,
     };
-
+  
     const userId = ctx.from.id;
-    const cartItems = await getCart(userId)
-
+    const cartItems = await getCart(userId);
+  
     const orderInformation = ctx.session.orderInformation || {};
     const order = await createOrder(userId, orderInformation, cartItems);
-  console.log("order information..........",order)
+  
     if (orderInformation.paymentType && orderInformation.paymentType.toLowerCase() === 'online') {
-        const payData =
-            JSON.stringify({
-              totalPrice: order.totalPrice,
-              orderItems: order.orderItems,
-              orderId: order._id.toString(), // Convert ObjectId to string
-            })
-          
-      
-          await ctx.reply(
-            `Order created successfully! Order ID: ${order._id}\nYou chose ${orderInformation.paymentType} payment.`,
-            Markup.inlineKeyboard([
-              Markup.button.callback('Pay', `pay:${payData}`),
-            ])
-          );
-      } else {
-        // If it's not online, simply reply with the order ID
-        await ctx.reply(`Order created successfully! Order ID: ${order._id}`);
-        ctx.session.orderInformation={}
-      }
-    // await ctx.scene.enter("selectePaymentType");
-    await ctx.scene.leave()
-});
-
-noteScene.action("edit", async (ctx) => {
-    // User wants to edit the note, ask for a new message
-    const note5mesagge = await ctx.reply("Edit your message for the seller:", {
-        reply_markup: {
-            force_reply: true,
-        },
-    });
-    ctx.session.cleanUpState.push({ id: note5mesagge.message_id, type: 'note' });
-});
-noteScene.action(/pay:(\d+):(.+):(.+)/, async (ctx) => {
-    // Extract the passed data from the button callback
-    const [, totalPrice, orderItems, orderId] = ctx.match;
-  
-    // Convert orderItems to an array (assumes it's a JSON string representation)
-    const orderItemsArray = JSON.parse(orderItems);
-  
-    // Reply with a message acknowledging the payment
-    await ctx.reply(`Payment received for Order ID: ${orderId}. Total Amount: ${totalPrice}`);
-  
-    // Enter the payment scene with the necessary data
-    ctx.scene.enter("paymentScene", {
-      totalPrice: +totalPrice, // Convert to a number if needed
-      orderItems: orderItemsArray,
-      orderId,
-    });
+      await ctx.reply(
+        `Order created successfully! Order ID: ${order._id}\nYou chose ${orderInformation.paymentType} payment.`,
+        Markup.inlineKeyboard([
+          Markup.button.callback('Pay', `pay:${order._id}`),
+        ])
+      );
+    } else {
+      await ctx.reply(`Order created successfully! Order ID: ${order._id}`);
+    }
   });
+  
+  noteScene.action(/pay:(.+)/, async (ctx) => {
+    const orderId = ctx.match[1];
+  
+    // Retrieve order information from your database using the orderId
+    const order = await getOrderById(orderId);
+  
+    // Handle the payment and enter the payment scene with the necessary data
+    await ctx.reply(`Payment received for Order ID: ${orderId.toString()}. Total Amount: ${order.totalPrice}`);
+    await ctx.scene.enter('paymentScene', {
+      totalPrice: order.totalPrice,
+      orderItems: order.orderItems,
+      orderId: orderId.toString(),
+    });
+    // await ctx.scene.leave()
+  });
+   
+
+
 // noteScene.on("callback_query", async (ctx) => {
 //     if ((ctx.session.isWaiting && ctx.session.isWaiting.status)) {
 //         if (ctx.callbackQuery.data === "Yes") {
