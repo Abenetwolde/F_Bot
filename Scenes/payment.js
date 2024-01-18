@@ -89,6 +89,7 @@ paymentScene.on("successful_payment", async (ctx) => {
         mobile: payment.order_info.phone_number,
     }
 console.log("paymetn data.........",paymentData)
+console.log("paymetn data.........",paymentData.order)
     // const userToken = await checkUserToken(`${ctx.from.id}`)
     // console.log("token from payment", userToken)
     // const orderData={
@@ -131,7 +132,7 @@ console.log("paymetn data.........",paymentData)
 })
 
 paymentScene.on("message", async (ctx) => {
-    if (ctx.message.text === "Home") {
+    if (ctx.message.text === "🏠 Back to Home") {
         ctx.scene.enter("homeScene")
     }
 })

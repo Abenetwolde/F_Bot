@@ -72,12 +72,13 @@ noteScene.action('confirm', async (ctx) => {
   
     const orderInformation = ctx.session.orderInformation || {};
     const order = await createOrder(userId, orderInformation, cartItems);
-  
-    if (orderInformation.paymentType && orderInformation.paymentType.toLowerCase() === 'online') {
+    const orderJson = JSON.stringify(order);
+    const orderJsonParse = JSON.parse(orderJson);
+    if (orderJsonParse.paymentType && orderJsonParse.paymentType.toLowerCase() === 'online') {
       await ctx.reply(
-        `Order created successfully! Order ID: ${order._id}\nYou chose ${orderInformation.paymentType} payment.`,
+        `Order created successfully! Order ID: ${orderJsonParse._id}\nYou chose ${orderInformation.paymentType} payment.`,
         Markup.inlineKeyboard([
-          Markup.button.callback('Pay', `pay:${order._id}`),
+          Markup.button.callback('Pay', `pay:${orderJsonParse._id}`),
         ])
       );
     } else {
@@ -90,13 +91,14 @@ noteScene.action('confirm', async (ctx) => {
   
     // Retrieve order information from your database using the orderId
     const order = await getOrderById(orderId);
-  
+    const orderJson = JSON.stringify(order);
+    const orderJsonParse = JSON.parse(orderJson);
     // Handle the payment and enter the payment scene with the necessary data
     await ctx.reply(`Payment received for Order ID: ${orderId.toString()}. Total Amount: ${order.totalPrice}`);
     await ctx.scene.enter('paymentScene', {
-      totalPrice: order.totalPrice,
-      orderItems: order.orderItems,
-      orderId: orderId.toString(),
+      totalPrice: orderJsonParse.totalPrice,
+      orderItems: orderJsonParse.orderItems,
+      orderId: orderJsonParse._id.toString(),
     });
     // await ctx.scene.leave()
   });
