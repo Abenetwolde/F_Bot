@@ -1,7 +1,7 @@
 const { Scenes, Markup } = require("telegraf")
 const moment = require("moment")
 const _ = require("lodash")
-const Calendar = require("../Templeat/Calender")
+
 const { sendProdcutSummary } = require("../Templeat/summary")
 
 const selectePaymentType = new Scenes.BaseScene("selectePaymentType")
@@ -36,7 +36,7 @@ selectePaymentType.action("online", async (ctx) => {
         paymentType: 'online'
     }
     // await sendProdcutSummary(ctx)
-    await ctx.scene.enter("NOTE_SCENE");
+    await ctx.scene.enter("addressOnline");
 });
 selectePaymentType.action("cash", async (ctx) => {
     // ctx.session.paymentType="Chash"

@@ -19,7 +19,7 @@ noteScene.enter(async (ctx) => {
         ["🏠 Back to Home"]
     ]).resize()
 
-    const note1message2 = await ctx.reply("Would you like to leave a note along with the order?<i>Kindly send a message that you wish to place on your order, or press the Skip button below this message to leave nothing</i>", Markup.inlineKeyboard([
+    const note1message2 = await ctx.reply("Would you like to leave a note along with the order?", Markup.inlineKeyboard([
         Markup.button.callback("Yes", 'yes'),
         Markup.button.callback("⏩ Skip", 'Skip'),
 
@@ -75,86 +75,27 @@ noteScene.action('confirm', async (ctx) => {
     const orderJson = JSON.stringify(order);
     const orderJsonParse = JSON.parse(orderJson);
     if (orderJsonParse.paymentType && orderJsonParse.paymentType.toLowerCase() === 'online') {
-      await ctx.reply(
-        `Order created successfully! Order ID: ${orderJsonParse._id}\nYou chose ${orderInformation.paymentType} payment.`,
-        Markup.inlineKeyboard([
-          Markup.button.callback('Pay', `pay:${orderJsonParse._id}`),
-        ])
-      );
-    } else {
-      await ctx.reply(`Order created successfully! Order ID: ${order._id}`);
-    }
-  });
-  
-  noteScene.action(/pay:(.+)/, async (ctx) => {
-    const orderId = ctx.match[1];
-  
-    // Retrieve order information from your database using the orderId
-    const order = await getOrderById(orderId);
-    const orderJson = JSON.stringify(order);
-    const orderJsonParse = JSON.parse(orderJson);
-    // Handle the payment and enter the payment scene with the necessary data
-    await ctx.reply(`Payment received for Order ID: ${orderId.toString()}. Total Amount: ${order.totalPrice}`);
+    //   await ctx.reply(
+    //     `Order created successfully! Order ID: ${orderJsonParse._id}\nYou chose ${orderInformation.paymentType} payment.`,
+    //     Markup.inlineKeyboard([
+    //       Markup.button.callback('Pay', `pay:${orderJsonParse._id}`),
+    //     ])
+    //   );
+    await ctx.reply(`Payment received for Order ID: ${orderJsonParse._id.toString()}. Total Amount: ${order.totalPrice}`);
     await ctx.scene.enter('paymentScene', {
       totalPrice: orderJsonParse.totalPrice,
       orderItems: orderJsonParse.orderItems,
       orderId: orderJsonParse._id.toString(),
     });
-    // await ctx.scene.leave()
+    //  await ctx.scene.leave()
+    } else {
+      await ctx.reply(`Order created successfully! Order ID: ${order._id}`);
+      await ctx.scene.leave()
+    }
   });
+  
+
    
-
-
-// noteScene.on("callback_query", async (ctx) => {
-//     if ((ctx.session.isWaiting && ctx.session.isWaiting.status)) {
-//         if (ctx.callbackQuery.data === "Yes") {
-
-
-//             const result = await sendProdcutSummary(ctx, ctx.scene.state.deliveryDate, ctx.session.isWaiting.note)
-// console.log("resut...........",result)
-            // const orderData={
-            //     shippingInfo: {   
-            //         note:result.usernote ,
-            //       },
-            //       orderItems:result.orderItems,
-            //       orderfromtelegram:true,
-            //       telegramid: ctx.from.id,
-            //       totalPrice:result.totalPrice,
-
-            //     }
-//             console.log("resultFromnote", result)
-//             try {
-//                 const orderResponse= await createOrder(orderData)
-//                 // orderResponse = await axios.post(`${apiUrl}/api/createorder`, orderData);
-//                  console.log("orderResponse.........",orderResponse)
-//             //    await ctx.reply(response.data.sccess)
-//             } catch (error) {
-//                 console.error("orderResponseerror",error)
-//                 // await ctx.reply(error)
-//             } 
-
-
-// console.log("orderData=>",orderData)
-//             ctx.scene.enter("PAYMENT_SCENE", {
-//                 userId: orderResponse.data.order.user,
-//                 orderId: orderResponse.data.order._id,
-//                 deliveryDate: ctx.scene.state.deliveryDate,
-//                 note: ctx.session.isWaiting.note,
-//             })
-//         } else {
-//             ctx.reply("cancling ...")
-
-//         }
-//     } else if (ctx.callbackQuery.data === "Skip") {
-//         ctx.scene.enter("PAYMENT_SCENE", {
-//             voucher: ctx.scene.state.voucher,
-//             deliveryDate: ctx.scene.state.deliveryDate,
-//             cartMessage: ctx.scene.state.cartMessage,
-//         })
-//     }
-//     // await ctx.answerCbQuery()
-//     await ctx.scene.leave();
-// })
 
 noteScene.leave(async (ctx) => {
     try {

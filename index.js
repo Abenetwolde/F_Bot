@@ -8,7 +8,7 @@ const http = require('http');
 const LocalSession = require('telegraf-session-local');
 const axios = require('axios');
 const fs = require('fs').promises;
-const { homeScene, productSceneTest, cart, informationCash,searchProduct, selectePaymentType, noteScene, paymentScene } = require('./Scenes/index.js');
+const { homeScene, productSceneTest, cart, informationCash,searchProduct,myOrderScene,addressOnline, selectePaymentType, noteScene, paymentScene } = require('./Scenes/index.js');
 const { checkUserToken } = require('./Utils/checkUserToken');
 const { Mongo } = require("@telegraf/session/mongodb");
 const { MongoClient } = require('mongodb');
@@ -37,7 +37,7 @@ bot.use(i18next({
   }
 }));
 const { Stage } = Scenes;
-const stage = new Stage([homeScene, searchProduct, productSceneTest, cart, selectePaymentType,informationCash, noteScene, paymentScene/* ,productScene,latestScene,popularScene */])
+const stage = new Stage([homeScene, searchProduct, productSceneTest, cart,myOrderScene, selectePaymentType,addressOnline,informationCash, noteScene, paymentScene/* ,productScene,latestScene,popularScene */])
 
 
 // bot.use(session({ store }));

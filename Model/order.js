@@ -67,7 +67,6 @@ const orderSchema = new mongoose.Schema({
         default : false
 
     },
-    shippedAt: Date,
     createdAt: {
         type: Date,
         default: Date.now

@@ -77,7 +77,7 @@ homeScene.hears(match('cart'), async (ctx) => {
     await ctx.scene.enter("cart")
 })
 homeScene.hears(match('order'), async (ctx) => {
-    await ctx.scene.enter("category")
+    await ctx.scene.enter("myOrderScene")
 })
 homeScene.action('latest', async (ctx) => {
     await ctx.scene.enter('product', { sortBy: 'latest' });

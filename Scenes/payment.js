@@ -6,6 +6,9 @@ const axios = require('axios');
 const apiUrl = 'http://localhost:5000';
 const _ = require("lodash");
 const { checkUserToken } = require("../Utils/checkUserToken");
+const { createPayment } = require("../Database/payment");
+const { updateOrder, updateOrderStatus } = require("../Database/orderController");
+const product = require("../Model/product");
 let priceLabels = []
 const paymentScene = new Scenes.BaseScene("paymentScene")
 
@@ -34,7 +37,7 @@ const priceLabels=[]
         const productCost = product.quantity * product?.product?.price
         priceLabels.push({
             label: `${product.quantity}x ${product?.product?.name}`,
-            amount: 100 * productCost,
+            amount: 100*productCost,
             // amount: Utils.convertValueToFloat(100 * productCost),
         })
 
@@ -47,25 +50,23 @@ const priceLabels=[]
         provider_token: "6141645565:TEST:SgnwnFe9W5qSP720pKno",
         start_parameter: "get_access",
         title: `Invoice (${moment().format("HH:mm A, DD/MM/YYYY")})`,
-        description: `Your total order amounts to ${numeral(totalCost / 100).format("$0,0.00")}.`,
+        description: `Your total order amounts to ${numeral(totalCost).format("0,0.00")}ETB.`,
         currency: "ETB",
         prices: priceLabels,
         payload: {
             id: ctx.from.id,
             // voucherID: ctx.scene.state.voucher ? ctx.scene.state.voucher.id : null
         },
-        need_shipping_address: true,
+        //  need_shipping_address: true,
         need_phone_number: true,
+      
     })
     console.log("invoiceData", invoice)
     ctx.session.cleanUpState.push({ id: invoice.message_id, type: "invoice" })
-    // console.log("ctx.session.cleanUpState", ctx.session.cleanUpState)
-    // Utils.updateInvoiceMessageInState(ctx, invoice.message_id)
+
 })
-// basescene_name.on(message("successful_payment"), handler)
 paymentScene.on("successful_payment", async (ctx) => {
     console.log("Success payment", ctx.message.successful_payment)
-    // Utils.replaceInvoiceToReceiptInState(ctx)
     ctx.session.cleanUpState = _.map(ctx.session.cleanUpState, function (message) {         // Convert old cart message ID into text to prune
         if (message.type === "invoice") {
             message.type = "receipt"
@@ -73,62 +74,54 @@ paymentScene.on("successful_payment", async (ctx) => {
         return message
     })
     const payment = ctx.message.successful_payment
-    console.log("payment", ctx.message.successful_payment)
     const invoice = JSON.parse(payment.invoice_payload)
-    console.log("invoice", invoice)
-    // const hasVoucherApplied = invoice.voucherID
-
-    // if (hasVoucherApplied) {
-    //     await Voucher.updateVoucherForUser(invoice.id, invoice.voucherID)
-    // }
     const paymentData = {
+        user:ctx.from.id,
         order: ctx.scene.state.orderId,
         total_amount: ctx.message.successful_payment.total_amount,
         invoice_id: invoice.id,
         telegram_payment_charge_id: ctx.message.successful_payment.telegram_payment_charge_id,
-        mobile: payment.order_info.phone_number,
+      
     }
-console.log("paymetn data.........",paymentData)
-console.log("paymetn data.........",paymentData.order)
-    // const userToken = await checkUserToken(`${ctx.from.id}`)
-    // console.log("token from payment", userToken)
-    // const orderData={
-    //     shippingInfo: {   
-    //         note:result.usernote ,
-    //       },
-    //       orderItems:result.orderItems,
-    //       user: "64fc441dc2df0c5c6132238b",
-    //       totalPrice:result.totalPrice,
-    //       delivery:result.datePick!==null?"Yes":"no",
-    //       shippedAt: result.datePick??result.datePick
-    //     }
-    // console.log("resultFromnote", result)
-    // try {
-    //     let headers
-    //     // if (userToken) {
-    //     //      headers = {
-    //     //       Authorization: `Bearer ${userToken}`,
-    //     //       'Content-Type': 'application/json'
-    //     //     }
-    //     // }
-    //     paymentResponse = await axios.post(`${apiUrl}/api/createpayment`, paymentData, {
-    //         headers: {
-    //             "Authorization": `Bearer ${userToken}`,
-    //             'Content-Type': 'application/json'
-    //         }
-    //     });
-    //     console.log("paymentResponse", paymentResponse.data)
-    //     //    await ctx.reply(response.data.sccess)
-    // } catch (error) {
-    //     console.error("orderResponseerror", error)
-    //     // await ctx.reply(error)
-    // }
+    const paymentdata=JSON.parse(JSON.stringify(paymentData))
+    try {
+        const savedPayment = await createPayment(
+            paymentdata
+        );
+       const orderupdate={
+            orderId:ctx.scene.state.orderId,
+            phoneNo:payment.order_info.phone_number,
+            paymentStatus:"completed",
+            orderStatus:"completed",
+        }
+const updatedOrder=await updateOrder(orderupdate)
+// console.log("orderupdate",orderinfo)
 
+// const updatedOrder = await updateOrderStatus(ctx.scene.state.orderId, 'completed');
+// console.log('Order status updated successfully:', updatedOrder.orderItems);
+for (const orderItem of updatedOrder.orderItems) {
+    await ctx.reply(
+        `Order Details:
+                   Product: ${orderItem.product.name}
+                   Quantity: ${orderItem.quantity}
+                   Total Price: ${orderItem.quantity * orderItem.product.price} ETB
+                   Order ID: ${updatedOrder._id}`,
+    );
+    
+    await product.findByIdAndUpdate(orderItem.product._id, {
+        $inc: {   orderQuantity: +orderItem.quantity }
+    });
+  }
 
+  // Send a separate message about the product
+  await ctx.reply(`Thank you for your order! The product will be delivered to you soon.`);
+        
+    } catch (error) {
+        console.error('Error creating payment:', error);
+        // Handle error
+    }
 
-  
-    // await Payment.createPayment(ctx, addressDetails, ctx.scene.state.deliveryDate, ctx.scene.state.note)
-    // ctx.scene.enter("homeScene")
+await ctx.scene.enter("homeScene")
 })
 
 paymentScene.on("message", async (ctx) => {

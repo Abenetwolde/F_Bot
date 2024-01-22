@@ -45,10 +45,9 @@ exports.createOrder = async (userId, orderInformation, cartItems) => {
 };
 
 
-exports.getOrders = async () => {
+exports.getUserOrders = async (userId,status) => {
   try {
-    const orders = await Order.find()
-      .populate('user')
+    const orders = await Order.find({ telegramid: userId ,orderStatus:status})
       .populate({
         path: 'orderItems.product',
         populate: {
@@ -56,7 +55,7 @@ exports.getOrders = async () => {
           model: 'Category', // replace with your actual Category model name
         },
       });
-    return orders;
+    return  JSON.parse(JSON.stringify(orders))
   } catch (error) {
     console.error('Error fetching orders:', error);
     throw new Error('Failed to fetch orders.');
@@ -75,6 +74,39 @@ exports.getOrderById= async (orderId) => {
   } catch (error) {
     console.error('Error fetching order by ID:', error);
     throw new Error('Failed to fetch order by ID.');
+  }
+};
+exports.updateOrder = async (data) => {
+  try {
+    const order = await Order.findById(data.orderId).populate('orderItems.product');
+
+    if (!order) {
+      throw new Error('Order not found.');
+    }
+
+    order.shippingInfo.phoneNo = data.phoneNo;
+    order.paymentStatus=data.paymentStatus
+    order.orderStatus=data.orderStatus
+    await order.save();
+
+    return JSON.parse(JSON.stringify(order)) ;
+  } catch (error) {
+    console.error('Error updating order quantity:', error);
+    throw new Error('Failed to update order quantity.');
+  }
+};
+exports.updateOrderStatus = async (orderId, newStatus) => {
+  try {
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      { paymentStatus: newStatus },
+      { new: true }
+    ).populate('orderItems.product');
+
+    return updatedOrder.toObject();
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    throw new Error('Failed to update order status.');
   }
 };
 exports.updateOrderQuantity = async (orderId, productIndex, newQuantity) => {
@@ -104,23 +136,23 @@ exports.updateOrderQuantity = async (orderId, productIndex, newQuantity) => {
   }
 };
 
-exports.cancelOrder = async (orderId) => {
+exports.cancelOrder = async (orderId, userId) => {
   try {
-    const order = await Order.findById(orderId);
+    // Check if the order belongs to the user
+    const order = await Order.findOne({ _id: orderId, telegramid: userId });
 
     if (!order) {
-      throw new Error('Order not found.');
+        return { success: false, message: "Order not found or doesn't belong to the user." };
     }
 
-    // Optionally, you can perform additional checks before canceling the order
+    // Remove the order
+    await Order.findByIdAndRemove(orderId);
 
-    await order.remove();
-
-    return 'Order canceled successfully.';
-  } catch (error) {
-    console.error('Error canceling order:', error);
-    throw new Error('Failed to cancel order.');
-  }
+    return { success: true, message: "Order canceled successfully." };
+} catch (error) {
+    console.error("Error canceling order:", error);
+    throw new Error("Failed to cancel the order.");
+}
 };
 
 // Helper function to calculate total price based on order items

@@ -7,8 +7,8 @@ const { ObjectId } = require('mongodb');
 const { getCart } = require('../Database/cartController');
 
 module.exports = {
-    displyProdcut: async function (ctx, producs,isSearch=false) {
-        const userId=ctx.from.id
+    displyProdcut: async function (ctx, producs, isSearch = false) {
+        const userId = ctx.from.id
         const cart = await getCart(userId);
         for (const product of producs) {
             if (ctx.session.shouldContinueSending == false) {
@@ -26,8 +26,7 @@ module.exports = {
             ctx.session.currentImageIndex[productId] = 0;
             ctx.session.viewMore[productId] = false;
             const messageInfo = await module.exports.sendProduct(ctx, productId, product);
-console.log("messageinfo", messageInfo)
-            // Store the message information in the session
+
             ctx.session.cleanUpState.push(messageInfo);
 
         }
@@ -35,21 +34,12 @@ console.log("messageinfo", messageInfo)
     },
 
     sendProduct: async function (ctx, productId, product, iscart) {
-console.log("reach",productId)
-console.log("reach prodcut",product)
-//         // const product =  ctx.session.iscart?ctx.session.cart:products
-//         console.log("product id............", productId)
-//         console.log("product............", product)
-        // Generate a caption for this product by concatenating all of its properties except for the images property
+        console.log("reach", productId)
+        console.log("reach prodcut", product)
         let caption = '';
         caption = ` ${product?.name}\n ▪️${product?.price} Birr \n ▪️${product?.discription}\n
        `
-        // Object.keys(product).forEach((key) => {
-        //     if (key !== 'images') {
-        //         caption += `${key}: ${product[key]}\n`;
-        //     } 
-        // });
-        // If the viewMore flag for this product is false and the caption is longer than 20 characters, truncate it and add an ellipsis
+
         if (!ctx.session.viewMore[productId] && caption.length > 20) {
             caption = caption.substring(0, 50) + '...';
         }
@@ -81,7 +71,7 @@ console.log("reach prodcut",product)
                         Markup.button.callback('➡️', `next_${productId}`)
                     ]);
                 }
-          
+
                 if (quantity > 0) {
                     keyboard.push([
                         Markup.button.callback('-', `removeQuantity_${productId}`),
@@ -137,11 +127,11 @@ console.log("reach prodcut",product)
             //     ctx.reply(caption, inlineButtons);
             // });
             // If there is no previous message ID, use the replyWithPhoto method to send a new message with this product's image
-          
+
             const message = await ctx.replyWithPhoto({ source: imageBuffer }, {
                 caption: caption,
                 ...Markup.inlineKeyboard([
-                    !product.quantity/*   === 0 */ ?[
+                    !product.quantity/*   === 0 */ ? [
                         Markup.button.callback('⬅️', `previous_${productId}`),
                         ctx.session.viewMore[productId] ? Markup.button.callback('View Less', `viewLess_${productId}`) : Markup.button.callback('View More', `viewMore_${productId}`),
                         Markup.button.callback('➡️', `next_${productId}`),
@@ -165,7 +155,7 @@ console.log("reach prodcut",product)
             return {
                 id: message.message_id,
                 type: 'product',
-                productId:productId
+                productId: productId
             };
         }
 

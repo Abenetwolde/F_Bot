@@ -35,10 +35,10 @@ const productSchema = new mongoose.Schema({
     images: [{
         type: String
     }],
-    category: { 
+    category: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',
-        required:true
+        required: true
     },
     warranty: {
         type: Number,
@@ -50,7 +50,8 @@ const productSchema = new mongoose.Schema({
         min: 0,
         max: 255
     },
-       createdAt: {
+    orderQuantity: Number,
+    createdAt: {
         type: Date,
         default: Date.now
     }
