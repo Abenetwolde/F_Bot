@@ -264,9 +264,9 @@ mongoClient.connect()
           await ctx.scene.enter('homeScene');
         }
       }
-      //  ctx.replyWithPhoto("https://backend-vg1d.onrender.com/393a8c4d-b965-45ab-83ad-8a774141fa12.png")
+       ctx.replyWithPhoto("https://foodapi-mlp3.onrender.com//f94f106e-5419-48ab-80c2-bd6a39b5cc96.jpg")
 
-    });
+    }); 
     bot.action(/set_lang:(.+)/, async (ctx) => {
       if (!ctx.session) {
         ctx.session = {}; // Initialize session if not exists
