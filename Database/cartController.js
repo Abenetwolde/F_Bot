@@ -23,7 +23,13 @@ async function createCart(userId, productId, quantity) {
     await cart.save();
 
     // Manually populate product details
-    const populatedCart = await Cart.findById(cart._id).populate('items.product');
+    const populatedCart = await Cart.findById(cart._id).populate({
+      path: 'items.product',
+      populate: {
+        path: 'category',
+        model: 'Category', // replace with your actual Category model name
+      },
+    });
 
     return populatedCart.items.find((item) => item.product._id.toString() === productId);
   } catch (error) {
@@ -37,7 +43,13 @@ async function createCart(userId, productId, quantity) {
 
 async function getCart  (userId)  {
     try {
-      const cart = await Cart.findOne({ user: userId }).populate('items.product');
+      const cart = await Cart.findOne({ user: userId }).populate({
+        path: 'items.product',
+        populate: {
+          path: 'category',
+          model: 'Category', // replace with your actual Category model name
+        },
+      })
       console.log("cart get",cart)
       return cart || { items: [] }; // Return an empty cart if not found
     } catch (error) {
@@ -74,7 +86,13 @@ async function updateCartItemQuantity(userId, productId, quantity) {
     await cart.save();
 
     // Populate the 'product' field in the 'items' array
-    const updatedCart = await Cart.findOne({ user: userId }).populate('items.product');
+    const updatedCart = await Cart.findOne({ user: userId }).populate({
+      path: 'items.product',
+      populate: {
+        path: 'category',
+        model: 'Category', // replace with your actual Category model name
+      },
+    });
 
     return updatedCart;
   } catch (error) {

@@ -24,7 +24,7 @@ module.exports = {
         cartProducts.items.forEach((product, productId) => {
             if (product.quantity > 0) {
                 // console.log(ctx.session.quantity[product._id], product._id)//filter the product quantity is greater than o
-                summary += `${product.product.name}: ${product.quantity} * ${product.product.price} = ${product.quantity * product.product.price}\n`;
+                summary += `🛒 ${product.product.name}: ${product.quantity} x ${product.product.price} = ${product.quantity * product.product.price} ETB\n`;
                 totalQuantity += product.quantity;
                 totalPrice += product.quantity * product.product.price;
                 orderItems.push({
@@ -44,14 +44,14 @@ module.exports = {
         }
 
         if (usernote) {
-            summary += `Note for seller: ${usernote}\n`
+            summary += `📔 Note for seller: ${usernote}\n`
           
             // orderItems.push({ "note": note }, )
         }
         if(paymentType){
-            summary += `Payment Type: ${paymentType}\n`
+            summary += `💳 Payment Type: ${paymentType}\n`
         }
-        summary += `\nTotal Quantity: ${totalQuantity}\nTotal Price: ${totalPrice} ETB`;
+        summary += `\nTotal Quantity: ${totalQuantity}\nTotal Price: <u>${totalPrice} ETB</u>`;
         console.log("summary", summary)
 
         // Check if there is a previous summary message ID stored in the cleanUpState array
@@ -71,8 +71,10 @@ module.exports = {
                             [
                                 Markup.button.callback('Procced to CheckOut', 'proceedToCheckout')
                             ]
-                        ])
-                    }
+                        ]),
+                        parse_mode: 'HTML' 
+                    },
+                
                 ).catch(() => { });;
             }
             if (totalQuantity == 0) {

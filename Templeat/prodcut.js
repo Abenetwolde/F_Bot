@@ -2,7 +2,7 @@
 const axios = require('axios');
 const sharp = require('sharp');
 const { Scenes, Markup, session } = require("telegraf")
-const apiUrl = 'http://localhost:5000';
+
 const { ObjectId } = require('mongodb');
 const { getCart } = require('../Database/cartController');
 
@@ -34,14 +34,37 @@ module.exports = {
     },
 
     sendProduct: async function (ctx, productId, product, iscart) {
-        console.log("reach", productId)
-        console.log("reach prodcut", product)
-        let caption = '';
-        caption = ` ${product?.name}\n ▪️${product?.price} Birr \n ▪️${product?.discription}\n
-       `
+        // console.log("reach", productId)
+        // console.log("reach prodcut", product)
+        const formatTelegramMessage = (product) => {
+            const { name, description, price, available, warranty, category, highlights, images, createdAt } = product;
 
-        if (!ctx.session.viewMore[productId] && caption.length > 20) {
-            caption = caption.substring(0, 50) + '...';
+            const formattedHighlights = highlights.map((highlight) => `${highlight}`).join(',');
+          const formattedprice= product.quantity!==0?
+          `  
+          . 
+          . 
+           ${product.quantity}x${product.price}= ${product.quantity*product.price} ETB`:''
+            
+            return `
+         ${category.icon} ${name} ${category.icon}
+         ${description}
+         💴 ${price} ETB
+         #${category.name} ${category.icon}
+         ${formattedHighlights}
+         ${formattedprice}
+        
+        
+            `;
+        };
+        let caption = '';
+        tag =
+            caption = ` ${product?.name}\n ▪️${product?.description}  \n ▪️${product?.price} ETB\n
+       `
+        let telegramMessage = formatTelegramMessage(product);
+
+        if (!ctx.session.viewMore[productId] && caption.length > 50) {
+            telegramMessage = caption.substring(0, 50) + '...';
         }
         // Check if the image for this product exists
         if (!product?.images || !product?.images[ctx.session.currentImageIndex[productId]]) {
@@ -49,7 +72,7 @@ module.exports = {
         }
         // Get the current image of this product from its images array using the current image productId stored in the session data
         const image = product?.images[ctx.session.currentImageIndex[productId]];
-        const response = await axios.get(image, { responseType: 'arraybuffer' });
+        // const response = await axios.get(image, { responseType: 'arraybuffer' });
 
         ;
         if (ctx.session.cleanUpState && ctx.session.cleanUpState.find(message => message?.type === 'product' && message?.productId === productId)) {
@@ -75,7 +98,7 @@ module.exports = {
                 if (quantity > 0) {
                     keyboard.push([
                         Markup.button.callback('-', `removeQuantity_${productId}`),
-                        Markup.button.callback(`${quantity} * ${price} = ${quantity * price} ${currency}`, `quantity_${productId}`),
+                        Markup.button.callback(`${quantity}`, `quantity_${productId}`),
                         Markup.button.callback('+', `addQuantity_${productId}`)
                     ], [
                         Markup.button.callback('Check Out', `Checkout`)
@@ -91,8 +114,8 @@ module.exports = {
                         null,
                         {
                             type: 'photo',
-                            media: image,
-                            caption: caption
+                            media: `${process.env.FOOD_API_DOMAIN}${image}`,
+                            caption: telegramMessage
                         },
                         Markup.inlineKeyboard(keyboard)
                     )
@@ -107,11 +130,14 @@ module.exports = {
         }
 
         else {
-
-            const response = await axios.get(image, { responseType: 'arraybuffer' });
+            const resizeimage = `${process.env.FOOD_API_DOMAIN}${image}`
+            console.log("imagebuferx............", resizeimage)
+            const response = await axios.get(resizeimage, { responseType: 'arraybuffer' });
             const imageBuffer = await sharp(response.data)
                 .resize(200, 200)
                 .toBuffer();
+            console.log("buffer............", imageBuffer)
+
 
             // const mediaGroup = product.images.map((p) => {
             //     return { type: 'photo', media: p, caption: 'p.name' };
@@ -129,7 +155,7 @@ module.exports = {
             // If there is no previous message ID, use the replyWithPhoto method to send a new message with this product's image
 
             const message = await ctx.replyWithPhoto({ source: imageBuffer }, {
-                caption: caption,
+                caption: telegramMessage,
                 ...Markup.inlineKeyboard([
                     !product.quantity/*   === 0 */ ? [
                         Markup.button.callback('⬅️', `previous_${productId}`),
@@ -140,7 +166,7 @@ module.exports = {
                     ...(product.quantity > 0 ? [
                         [
                             Markup.button.callback('-', `removeQuantity_${productId}`),
-                            Markup.button.callback(`${product.quantity} * ${product.price} = ${product.quantity * product.price} ${product.currency}`, `quantity_${productId}`),
+                            Markup.button.callback(`${product.quantity}`, `quantity_${productId}`),
                             Markup.button.callback('+', `addQuantity_${productId}`)
                         ]
                     ] : (ctx.session.viewMore[productId] ? [

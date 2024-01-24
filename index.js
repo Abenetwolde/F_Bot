@@ -8,6 +8,7 @@ const http = require('http');
 const LocalSession = require('telegraf-session-local');
 const axios = require('axios');
 const fs = require('fs').promises;
+require('dotenv').config();
 const { homeScene, productSceneTest, cart, informationCash,searchProduct,myOrderScene,addressOnline, selectePaymentType, noteScene, paymentScene } = require('./Scenes/index.js');
 const { checkUserToken } = require('./Utils/checkUserToken');
 const { Mongo } = require("@telegraf/session/mongodb");
@@ -155,36 +156,24 @@ mongoClient.connect()
       console.log("chatid", ctx.chat.id)
       const startCommand = ctx.message.text.split(' ');
       if (startCommand.length === 2 && startCommand[1].startsWith('chat_')) {
-        // Extract the question ID from the arguments
         const questionId = startCommand[1].replace('chat_', '');
         console.log("id from search scene", questionId)
         try {
-          // Fetch the product details
-          // const response = await axios.get(`http://localhost:5000/api/getprodcut/${questionId}`);
-          // const product = response.data.product;
 
           const response = await getSingleProduct(questionId);
           const product = JSON.stringify(response)
-          console.log("ssssssssssssssssssssssssss,", product)
-          // product.quantity = typeof product.quantity === 'number' ? product.quantity : 0;
+        
           if (product) {
             // product.quantity = typeof product.quantity === 'number' ? product.quantity : 0;
             const singleP = await JSON.parse(product)
             // Update the quantity based on the action
             await ctx.scene.enter('product', { product: singleP });
-            // await ctx.scene.leave()
-            // Use the new function to send or edit the message
-            // await sendProduct(ctx, questionId, product);
+         
           } else {
             console.error('Product not found.');
             // Handle the case when the product is not found
           }
-          // Update the quantity based on the action
-
-          // await ctx.scene.enter("product", { product: product })
-          // await ctx.scene.leave()
-          // Use the new function to send or edit the message
-          // await sendProduct(ctx, questionId, product);
+      
         } catch (error) {
           console.error('Error handling quantity action:', error);
         }
@@ -264,8 +253,8 @@ mongoClient.connect()
           await ctx.scene.enter('homeScene');
         }
       }
-       ctx.replyWithPhoto("https://foodapi-mlp3.onrender.com//f94f106e-5419-48ab-80c2-bd6a39b5cc96.jpg")
-
+      //  ctx.replyWithPhoto("https://foodapi-mlp3.onrender.com//f94f106e-5419-48ab-80c2-bd6a39b5cc96.jpg")
+// 
     }); 
     bot.action(/set_lang:(.+)/, async (ctx) => {
       if (!ctx.session) {

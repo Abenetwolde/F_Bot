@@ -18,10 +18,10 @@ const selectePaymentType = new Scenes.BaseScene("selectePaymentType")
 
 selectePaymentType.enter(async (ctx) => {
     await sendProdcutSummary(ctx)
-    const selec1message = await ctx.reply("Just two more steps before we're able to generate your invoice! 🙂",)
-    Markup.keyboard([
+    const selec1message = await ctx.reply("Just two more steps before we're able to generate your invoice! 🙂",    Markup.keyboard([
         ["🏠 Back to Home"]
-    ]).resize()
+    ]).resize())
+
     const selec2message = await ctx.reply("Selecte Payment type", Markup.inlineKeyboard([
         Markup.button.callback("Pay Online", 'online'),
         Markup.button.callback("Pay On Cash", 'cash'),

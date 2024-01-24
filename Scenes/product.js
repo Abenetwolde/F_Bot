@@ -265,9 +265,9 @@ productSceneTest.action(/addQuantity_(.+)/, async (ctx) => {
 
         // Fetch product data
 
-        const productData = await Product.findById(productId);
+        const productData = await Product.findById(productId).populate('category');
         const productArg = { ...productData.toObject(), quantity: updatedCart.items.find(item => item.product.equals(productId)).quantity };
-
+console.log("data when the buy clikc.........",productArg)
         // Send the product information to the user
         sendProduct(ctx, productId, productArg);
 
@@ -285,7 +285,7 @@ productSceneTest.action(/removeQuantity_(.+)/, async (ctx) => {
     try {
         const userId = ctx.from.id;
         const updatedCart = await updateCartItemQuantity(userId, productId, -1);
-        const productData = await Product.findById(productId);
+        const productData = await Product.findById(productId).populate("category");
         const productArg = { ...productData.toObject(), quantity: updatedCart.items.find(item => item.product.equals(productId)).quantity };
         if (productArg.quantity === 0) {
             await ctx.answerCbQuery(`You have removed ${productArg.name} of product from your cart.`);
