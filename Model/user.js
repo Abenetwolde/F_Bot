@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const LanguageEnum = {
   EN: 'en',
-  RU: 'am',
+  RU: 'ru',
 };
 
 const userSchema = new mongoose.Schema({
@@ -15,11 +15,17 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
   },
-  name: {
+  first_name: {
     type: String,
   },
-  last: {
+  last_name: {
     type: String,
+  },
+  username:{
+    type: String,
+  },
+  is_bot:{
+    type: Boolean,
   },
   role: {
     type: String,

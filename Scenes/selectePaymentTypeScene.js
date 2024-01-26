@@ -57,10 +57,10 @@ selectePaymentType.leave(async (ctx) => {
         if (ctx.session.cleanUpState) {
             // Iterate over the cleanUpState array
             for (const message of ctx.session.cleanUpState) {
-                // Check if the message exists before attempting to delete it
-                // if (message?.type === 'selectPayment'|| message?.type === 'summary') {
-                //     await ctx.telegram.deleteMessage(ctx.chat.id, message.id);
-                // }
+      
+                if (message?.type === 'selectPayment'/* || message?.type === 'summary' */) {
+                    await ctx.telegram.deleteMessage(ctx.chat.id, message.id);
+                }
             }
         }
     } catch (error) {

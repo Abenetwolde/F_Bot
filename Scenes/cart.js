@@ -115,31 +115,7 @@ cart.action("proceedToCheckout", async (ctx) => {
 // await ctx.scene.leave();
 });
 
-cart.on("message", async (ctx) => {
 
-      await ctx.replyWithHTML(`This is the note that you wish to leave for the seller: <i>${ctx.message.text}</i>`, Markup.inlineKeyboard([
-          [
-              { text: "✅ Confirm", callback_data: "Yes" },
-              { text: "❌ Cancel", callback_data: "No" },
-          ],
-      ]))
-      // Utils.sendSystemMessage(ctx, Template.noteConfirmationMessage(ctx.message.text), Template.confirmationButtons())
-      ctx.session.isWaiting.note = ctx.message.text
-      ctx.session.isWaiting.status = true 
-    
-})
-cart.on("callback_query", async (ctx) => {
-  const data = ctx.callbackQuery.data
-  if (data === "Yes") {
-    await sendProdcutSummary(ctx)    
-    // ctx.scene.enter("DATE_SCENE")
-    await ctx.scene.leave();
-  }
-  if (data === "No") {
-    ctx.scene.enter("NOTE_SCENE")
-    await ctx.scene.leave(); 
-  }
-})
 
 cart.leave(async (ctx) => {
   try {

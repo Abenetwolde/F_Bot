@@ -60,12 +60,9 @@ searchProduct.on('inline_query', async (ctx) => {
     });
 
     const products = JSON.parse(response);
-console.log("prodcus",products)
 
-    // const totalPages = products.totalPages;
-    // Map the fetched products to Telegram inline query results
     const results = products?.products.map((product) => {
-      const thumbnail = product?.images[0];
+      const thumbnail = product?.images[0].imageUrl;
       console.log("prodcus titile",product?.name)
       return {
         type: 'article',

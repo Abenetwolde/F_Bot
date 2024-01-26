@@ -67,14 +67,14 @@ module.exports = {
             telegramMessage = caption.substring(0, 50) + '...';
         }
         // Check if the image for this product exists
-        if (!product?.images || !product?.images[ctx.session.currentImageIndex[productId]]) {
-            return;
-        }
+        // if (!product?.images || !product?.images[ctx.session.currentImageIndex[productId].imageUrl]) {
+        //     return;
+        // }
         // Get the current image of this product from its images array using the current image productId stored in the session data
-        const image = product?.images[ctx.session.currentImageIndex[productId]];
+        const image = product?.images[ctx.session.currentImageIndex[productId]].imageUrl;
         // const response = await axios.get(image, { responseType: 'arraybuffer' });
 
-        ;
+        console.log("imagesa............",image)
         if (ctx.session.cleanUpState && ctx.session.cleanUpState.find(message => message?.type === 'product' && message?.productId === productId)) {
             const productMessage = ctx.session.cleanUpState.find(message => message?.type === 'product' && message?.productId === productId);
             if (productMessage) {
@@ -114,7 +114,7 @@ module.exports = {
                         null,
                         {
                             type: 'photo',
-                            media: `${process.env.FOOD_API_DOMAIN}${image}`,
+                            media: image,
                             caption: telegramMessage
                         },
                         Markup.inlineKeyboard(keyboard)
@@ -130,7 +130,7 @@ module.exports = {
         }
 
         else {
-            const resizeimage = `${process.env.FOOD_API_DOMAIN}${image}`
+            const resizeimage = image
             console.log("imagebuferx............", resizeimage)
             const response = await axios.get(resizeimage, { responseType: 'arraybuffer' });
             const imageBuffer = await sharp(response.data)

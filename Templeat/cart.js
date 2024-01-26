@@ -34,7 +34,8 @@ module.exports = {
         if (ctx.session?.viewMore&&!ctx.session?.viewMore[productId] && caption.length > 100) {
             caption = caption.substring(0, 100) + '...';
         }
-        const image = cart?.product?.images[0];
+        const image = await cart?.product?.images[0]?.imageUrl;
+        console.log("cart image looks like in the cart.................",image)
         if (ctx.session.cleanUpState && ctx.session.cleanUpState.find(message => message.type === 'cart' && message.productId === productId)) {
             const messageId = ctx.session.cleanUpState.find(message => message.type === 'cart' && message.productId === productId).id;
             await ctx.telegram.editMessageMedia(
@@ -43,7 +44,7 @@ module.exports = {
                 null,
                 {
                     type: 'photo',
-                    media: `${process.env.FOOD_API_DOMAIN}${image}`,
+                    media: image,
                     caption: caption
                 },
                 Markup.inlineKeyboard([
@@ -58,7 +59,7 @@ module.exports = {
                 ])
             )
         } else {
-            const resizeimage = `${process.env.FOOD_API_DOMAIN}${image}`
+            const resizeimage = image
             const response = await axios.get(resizeimage, { responseType: 'arraybuffer' });
             const imageBuffer = await sharp(response.data)
                 .resize(200, 200)

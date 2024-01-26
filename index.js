@@ -13,7 +13,7 @@ const { homeScene, productSceneTest, cart, informationCash,searchProduct,myOrder
 const { checkUserToken } = require('./Utils/checkUserToken');
 const { Mongo } = require("@telegraf/session/mongodb");
 const { MongoClient } = require('mongodb');
-const { createUser } = require('./Database/UserController.js');
+const { createUser, updateUserLanguage } = require('./Database/UserController.js');
 
 const bot = new Telegraf("6372866851:AAE3TheUZ4csxKrNjVK3MLppQuDnbw2vdaM", {
   timeout: Infinity
@@ -62,7 +62,7 @@ const stage = new Stage([homeScene, searchProduct, productSceneTest, cart,myOrde
 
 
 // bot.use(localSession.middleware());
-const mongoClient = new MongoClient('mongodb+srv://Abnet:80110847@cluster0.vdpmtdg.mongodb.net/?retryWrites=true&w=majority', {
+const mongoClient = new MongoClient('mongodb+srv://abnet:80110847@cluster0.hpovgrl.mongodb.net/?retryWrites=true&w=majority', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
@@ -106,6 +106,21 @@ mongoClient.connect()
         console.log('Response time: %sms', ms);
       });
     })
+    const startMiddleware = (ctx, next) => {
+      const text = ctx.message?.text;
+      
+      // Check if the text is the "/start" command
+      if (text && text.toLowerCase() === '/start') {
+        // Trigger the start command handling logic
+        return ctx.scene.enter("homeScene")
+      }
+    
+      // Continue to the next middleware or scene
+      return next();
+    };
+    
+    // Apply the startMiddleware to all scenes
+    bot.use(startMiddleware);
     const fakeDatabase = {
       users: {},
     };
@@ -153,7 +168,7 @@ mongoClient.connect()
     }
 
     bot.start(async (ctx) => {
-      console.log("chatid", ctx.chat.id)
+      console.log("ctx.from.............", ctx.from)
       const startCommand = ctx.message.text.split(' ');
       if (startCommand.length === 2 && startCommand[1].startsWith('chat_')) {
         const questionId = startCommand[1].replace('chat_', '');
@@ -206,8 +221,11 @@ mongoClient.connect()
             try {
               const response = await createUser({
                 telegramid: ctx.from.id,
-                name: ctx.from.first_name,
-                last: ctx.from.last_name,
+                first_name: ctx.from.first_name,
+                last_name: ctx.from.last_name,
+                username: ctx.from.username || null,
+                is_bot: ctx.from.is_bot || false,
+                language:ctx.session.locale
               });
 
               console.log("response.data", response)
@@ -232,8 +250,11 @@ mongoClient.connect()
             try {
               const response = await createUser({
                 telegramid: ctx.from.id,
-                name: ctx.from.first_name,
-                last: ctx.from.last_name,
+                first_name: ctx.from.first_name,
+                last_name: ctx.from.last_name,
+                username: ctx.from.username || null,
+                is_bot: ctx.from.is_bot || false,
+                language:ctx.session.locale
               });
               console.log("response.data", response)
 
@@ -265,6 +286,13 @@ mongoClient.connect()
       ctx.i18next.changeLanguage(ctx.session.locale);
       if (ctx.session.languageMessageId) {
         await ctx.telegram.deleteMessage(ctx.chat.id, ctx.session.languageMessageId);
+      }
+      const updateResult = await updateUserLanguage(ctx.from.id, ctx.session.locale);
+
+      if (updateResult.success) {
+        console.log(updateResult.message);
+      } else {
+        console.error(updateResult.message);
       }
       await ctx.scene.enter('homeScene');;
     });
@@ -474,19 +502,19 @@ process.once("SIGTERM", () => bot.stop("SIGTERM"))
 // })
 const launch = async () => {
    try {
-    await bot.launch({
-      dropPendingUpdates: true,
-      polling: {
-        timeout: 30,
-        limit: 100,
-      },
-    });
-    // bot.launch({
-    //   webhook: {
-    //     domain: 'https://telegrambot-iytz.onrender.com/',
-    //     hookPath: '/my-secret-path',
+    // await bot.launch({
+    //   dropPendingUpdates: true,
+    //   polling: {
+    //     timeout: 30,
+    //     limit: 100,
     //   },
     // });
+    bot.launch({
+      webhook: {
+        domain: 'https://telegrambot-iytz.onrender.com/',
+        hookPath: '/my-secret-path',
+      },
+    });
     console.log('Bot is running!');
   } catch (e) {
     console.error(`Couldn't connect to Telegram - ${e.message}; trying again in 5 seconds...`);
