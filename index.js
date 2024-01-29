@@ -106,21 +106,10 @@ mongoClient.connect()
         console.log('Response time: %sms', ms);
       });
     })
-    const startMiddleware = (ctx, next) => {
-      const text = ctx.message?.text;
-      
-      // Check if the text is the "/start" command
-      if (text && text.toLowerCase() === '/start') {
-        // Trigger the start command handling logic
-        return ctx.scene.enter("homeScene")
-      }
-    
-      // Continue to the next middleware or scene
-      return next();
-    };
+
     
     // Apply the startMiddleware to all scenes
-    bot.use(startMiddleware);
+  
     const fakeDatabase = {
       users: {},
     };
@@ -169,6 +158,7 @@ mongoClient.connect()
 
     bot.start(async (ctx) => {
       console.log("ctx.from.............", ctx.from)
+      console.log("ctx.session.locale",ctx.session.locale)
       const startCommand = ctx.message.text.split(' ');
       if (startCommand.length === 2 && startCommand[1].startsWith('chat_')) {
         const questionId = startCommand[1].replace('chat_', '');
@@ -208,6 +198,7 @@ mongoClient.connect()
         } catch (error) {
           console.error("error while deleting message when the bot start", error)
         }
+
         if (!ctx.session.locale) {
           const message = await ctx.reply('Please choose your language', Markup.inlineKeyboard([
             Markup.button.callback('English', 'set_lang:en'),
@@ -271,7 +262,7 @@ mongoClient.connect()
             }
           }
           // Whether the user was just registered or is already registered, enter the home scene.
-          await ctx.scene.enter('homeScene');
+           await ctx.scene.enter('homeScene');
         }
       }
       //  ctx.replyWithPhoto("https://foodapi-mlp3.onrender.com//f94f106e-5419-48ab-80c2-bd6a39b5cc96.jpg")
@@ -502,19 +493,19 @@ process.once("SIGTERM", () => bot.stop("SIGTERM"))
 // })
 const launch = async () => {
    try {
-    // await bot.launch({
-    //   dropPendingUpdates: true,
-    //   polling: {
-    //     timeout: 30,
-    //     limit: 100,
-    //   },
-    // });
-    bot.launch({
-      webhook: {
-        domain: 'https://telegrambot-iytz.onrender.com/',
-        hookPath: '/my-secret-path',
+    await bot.launch({
+      dropPendingUpdates: true,
+      polling: {
+        timeout: 30,
+        limit: 100,
       },
     });
+    // bot.launch({
+    //   webhook: {
+    //     domain: 'https://telegrambot-iytz.onrender.com/',
+    //     hookPath: '/my-secret-path',
+    //   },
+    // });
     console.log('Bot is running!');
   } catch (e) {
     console.error(`Couldn't connect to Telegram - ${e.message}; trying again in 5 seconds...`);

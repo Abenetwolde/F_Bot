@@ -114,6 +114,7 @@ noteScene.action('confirm', async (ctx) => {
     //  await ctx.scene.leave()
     } else {
       await ctx.reply(`Order created successfully! Order ID: ${order._id}`);
+     ctx.session.orderInformation={}
       await ctx.scene.leave()
     }
   });

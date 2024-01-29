@@ -132,6 +132,7 @@ paymentScene.on("message", async (ctx) => {
 
 paymentScene.leave(async (ctx) => {
     console.log("Cleaning payment scene")
+    ctx.session.orderInformation={}
     await ctx.scene.leave()
     // await Utils.clearScene(ctx, true)
 })
