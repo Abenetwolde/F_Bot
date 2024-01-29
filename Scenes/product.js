@@ -6,6 +6,7 @@ const { getProdcuts, getProducts } = require("../Services/prodcut");
 const { displyProdcut, sendProduct } = require("../Templeat/prodcut");
 const { createCart, updateCartItemQuantity, removeItemFromCart } = require("../Database/cartController");
 const Product = require("../Model/product");
+const prodcut = require("../Services/prodcut");
 const pageSize = 1;
 const apiUrl = 'http://localhost:5000';
 // const apiUrl = 'https://backend-vg1d.onrender.com';
@@ -309,7 +310,7 @@ async function sendPage(ctx) {
             }
         });
     }
-    ctx.session.cleanUpState = []
+    ctx.session.cleanUpState = [...ctx.session.cleanUpState]
     try {
         const response = await getProducts(ctx, pageSize)
         const products = JSON.parse(response);
@@ -317,6 +318,18 @@ async function sendPage(ctx) {
             console.error('Error: Unable to fetch valid products data from the response.');
             console.log('Response:', products);
         } else {
+            if(products.products.length==0)
+            {
+                if (ctx.session.cleanUpState) {
+                    ctx.session.cleanUpState.forEach(async (message) => {
+                        if (message?.type === 'productKeyboard') {
+                            await ctx.telegram.deleteMessage(ctx.chat.id, message.id).catch((e) => ctx.reply(e.message));
+            
+                        }
+                    });
+                }
+                return ctx.reply("there is no product")
+            }
             const productsData = products.products;
             console.log("Product data:", productsData);
             const simplifiedProducts = await productsData.map(product => ({
