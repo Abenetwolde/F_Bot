@@ -51,6 +51,7 @@ const productSchema = new mongoose.Schema({
         min: 0,
         max: 255
     },
+    postStatus: { type: Boolean, default: true },
     orderQuantity: Number,
     createdAt: {
         type: Date,

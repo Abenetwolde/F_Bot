@@ -36,8 +36,8 @@ module.exports = {
         }
         const image = await cart?.product?.images[0]?.imageUrl;
         console.log("cart image looks like in the cart.................",image)
-        if (ctx.session.cleanUpState && ctx.session.cleanUpState.find(message => message.type === 'cart' && message.productId === productId)) {
-            const messageId = ctx.session.cleanUpState.find(message => message.type === 'cart' && message.productId === productId).id;
+        if (ctx.session.cleanUpState && ctx.session.cleanUpState.find(message => message?.type === 'cart' && message?.productId === productId)) {
+            const messageId = ctx.session.cleanUpState.find(message => message?.type === 'cart' && message?.productId === productId).id;
             await ctx.telegram.editMessageMedia(
                 ctx.chat.id,
                 messageId,

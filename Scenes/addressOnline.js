@@ -43,7 +43,7 @@ addressOnline.on("message", async (ctx) => {
     } else {
         ctx.session.orderInformation = {
             ...ctx.session.orderInformation,
-            note: ctx.message.text,
+            location: ctx.message.text,
         };
         await ctx.scene.enter("NOTE_SCENE");
     }

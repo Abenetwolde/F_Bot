@@ -26,15 +26,43 @@ homeScene.enter(async (ctx) => {
               result.push(array.slice(index, index + 2));
             return result;
           }, []);
+          let showkey=false
+  
+            const userId = ctx.from.id;
+            // get the chat ID or username of the channel
+            const chatId = '@takeitorle';
+            // get the chat member information
+        await ctx.telegram.getChatMember(chatId, userId)
+              .then(user => {
+                // check if the user is an admin or creator
+        if(user.status === 'administrator' || user.status === 'creator'){
+            console.log("true impemented............")
+            showkey=true
+        }
+                  
+               
+              })
+              .catch(error => {
+                return false;
+                // handle the error
+                
+              });
+        
         try {
+     
+            let keyboard = [
+                [ctx.i18next.t('Search'), ctx.i18next.t('cart')],
+                [ctx.i18next.t('order'), ctx.i18next.t('Language')]
+            ];
+            if (showkey) {
+                console.log("trie")
+keyboard[1].push('Admin 📊');
+            }
             const welcomeMessage = await ctx.reply(
-                `Hello ${ctx.from.first_name}!`,
-                Markup.keyboard([
-                    [ctx.i18next.t('Search'), ctx.i18next.t('cart')],
-                    [ctx.i18next.t('cart'), ctx.i18next.t('order'), ctx.i18next.t('Language')]
-                ]).resize(),
+                `Hello ${ctx.session.token ? 'again ' : ''}${ctx.from.first_name}!`,
+                Markup.keyboard(keyboard).resize()
             );
-
+            console.log("key........",keyboard)
             // Save the welcome message ID to the cleanUpState array in the session data
             ctx.session.cleanUpState.push({ id: welcomeMessage.message_id, type: 'home' });
         } catch (error) {
@@ -79,6 +107,9 @@ homeScene.hears(match('cart'), async (ctx) => {
 homeScene.hears(match('order'), async (ctx) => {
     await ctx.scene.enter("myOrderScene")
 })
+homeScene.hears('Admin 📊', async (ctx) => {
+    await ctx.scene.enter("adminBaseScene")
+})
 homeScene.action('latest', async (ctx) => {
     await ctx.scene.enter('product', { sortBy: 'latest' });
     // await ctx.scene.leave();
@@ -91,7 +122,7 @@ homeScene.action('popular', async (ctx) => {
 homeScene.hears(match('Language'), async (ctx) => {
     const message = await ctx.reply('Please choose your language', Markup.inlineKeyboard([
         Markup.button.callback('English', 'set_lang:en'),
-        Markup.button.callback('አማርኛ', 'set_lang:ru')
+        Markup.button.callback('አማርኛ', 'set_lang:am')
     ]))
     ctx.session.languageMessageId = message.message_id;
 })

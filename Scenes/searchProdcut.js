@@ -14,15 +14,14 @@ searchProduct.enter(async (ctx) => {
   ctx.session.viewMoreSearch=null
   console.log("reach serach scene")
   let message = `
-Type the Product Name to search
-Example @testecommerce12bot Prodcut name
+Click here to Search a prodcut
 `;
   //ctx.reply(text, [extra params])
   ctx.reply(message, {
     reply_markup: {
       inline_keyboard: [
         [
-          { text: 'Click here to Search a prodcut', switch_inline_query_current_chat: "" }
+          { text: '  Search 🔎', switch_inline_query_current_chat: "" }
         ]
       ],
       force_reply: true
@@ -69,27 +68,20 @@ searchProduct.on('inline_query', async (ctx) => {
         title: product?.name||"Product",
         photo_url: String(thumbnail),
         thumb_url: String(thumbnail),
-        description: product?.description,
+        description: `${product?.description}\n${product.price} ETB\n`,
         id: String(product?._id),
         input_message_content: {
-          message_text: `${product?.name && product?.name}\n product.description,<a href="${thumbnail}">&#8205;</a>`,
+          message_text: `${product?.name && product?.name}\n ${product?.description}\n${product.price} ETB\n <a href="${thumbnail}">&#8205;</a>`,
           parse_mode: "HTML",
         },
         reply_markup: {
           inline_keyboard: [
             [
-              // {
-              //   text: 'View More',
-              //   callback_data: `view_more_${product._id}`,
-              // },
               {
                 text: 'View More',
                 url: `https://t.me/testecommerce12bot?start=chat_${product._id}`,
               },
-              {
-                text: 'Buy',
-                callback_data: `Buy_${product?._id}`,
-              },
+            
             ],
           ],
         },

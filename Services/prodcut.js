@@ -11,13 +11,16 @@ module.exports = {
         const category = ctx.scene?.state?.category?.id;
         const sortBy = ctx.scene?.state?.sortBy;
         const page = params.page || 1;
+
+        console.log("what is params say",params)
         const pageSize = params.pageSize || 1;
-     
+     const search=params.search
         // console.log("sortBy", sortBy);
     
         try {
  const product= await getAllProducts({
             category: category,
+            search,
             // sortBy: sortBy||"latest",
             page: ctx.session.currentPage||1,
             pageSize: pageSize,

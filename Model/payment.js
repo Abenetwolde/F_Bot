@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema
 const paymentSchema = new mongoose.Schema({
-    user: {
-        type: mongoose.Schema.Types.Number,  // Use mongoose.Schema.Types.Number to specify a number type
+    telegramid: {
+        type: Number,  // Use mongoose.Schema.Types.Number to specify a number type
         ref: "Users",
         // required: true
     },

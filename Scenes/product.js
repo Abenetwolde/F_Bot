@@ -7,7 +7,7 @@ const { displyProdcut, sendProduct } = require("../Templeat/prodcut");
 const { createCart, updateCartItemQuantity, removeItemFromCart } = require("../Database/cartController");
 const Product = require("../Model/product");
 const prodcut = require("../Services/prodcut");
-const pageSize = 1;
+const pageSize = 3;
 const apiUrl = 'http://localhost:5000';
 // const apiUrl = 'https://backend-vg1d.onrender.com';
 const productSceneTest = new Scenes.BaseScene('product');
@@ -26,8 +26,12 @@ productSceneTest.enter(async (ctx) => {
     ctx.session.quantity = {};
     ctx.session.currentPage = 1;
     ctx.session.products = []
-    let replyText = `You are now viewing our products.`; // Default reply text
-
+   // Default reply text
+const prodcutfirst= await ctx.reply("sendmessage")
+await ctx.session.cleanUpState.push({
+    id: prodcutfirst.message_id,
+    type: 'first'  
+})
     if (category && category.name) {
         replyText = `You are now viewing our ${category.name} products.`;
     } else if (sortBy) {
@@ -43,19 +47,13 @@ productSceneTest.enter(async (ctx) => {
     }));
  
     await ctx.sendChatAction('typing');
-    const prodcutKeuboard = await ctx.reply(
-        replyText,
-        Markup.keyboard([
-            ['Home', 'Checkout'],
 
-        ]).resize(),
-    );
-    await ctx.session.cleanUpState.push({ id: prodcutKeuboard.message_id, type: 'productKeyboard' })
     console.log("prodcutKeuboard......................", ctx.session.cleanUpState)
 
 
     ctx.session.products = simplifiedProducts;
-    product ? await displyProdcut(ctx, simplifiedProducts) : await sendPage(ctx)   // await sendPage(ctx)
+    const viewmore=true
+    product ? await displyProdcut(ctx, simplifiedProducts,viewmore) : await sendPage(ctx)   // await sendPage(ctx)
 });
 
 productSceneTest.action('Previous', async (ctx) => {
@@ -76,6 +74,35 @@ productSceneTest.hears('Checkout', async (ctx) => {
     ctx.session.shouldContinueSending = false
     await new Promise(resolve => setTimeout(resolve, 1000));
     await ctx.scene.enter('cart');
+});
+productSceneTest.action('Home', async (ctx) => {
+    try {
+        // try {
+        //     if (ctx.session.cleanUpState) {
+        //         ctx.session.cleanUpState.forEach(async (message) => {
+        //             if (message?.type === 'product' || message?.type === 'pageNavigation' || message?.type === 'productKeyboard'/* && message.type === 'summary' */) {
+        //                 try {
+        //                     await ctx.telegram.deleteMessage(ctx.chat.id, message.id);
+        //                 }
+        //                 catch (error) {
+        //                     console.log(error)
+        //                 }
+
+        //             }
+
+        //         });
+        //     }
+        // } catch (error) {
+        //     ctx.reply(error)
+        // }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await ctx.scene.enter('homeScene');
+    } catch (error) {
+        await ctx.reply(error)
+
+    }
+    ctx.session.shouldContinueSending = false
+
 });
 productSceneTest.hears('Home', async (ctx) => {
     try {
@@ -186,7 +213,8 @@ productSceneTest.action(/next_(.+)/, (ctx) => {
     console.log("singleProdcut................", product)
     ctx.session.currentImageIndex[productId]++;
     if (ctx.session.currentImageIndex[productId] >= product[0].images.length) {
-        ctx.session.currentImageIndex[productId] = 0;
+         ctx.session.currentImageIndex[productId] = 0;
+        // return
     }
     sendProduct(ctx, productId, product[0]);
 });
@@ -299,26 +327,63 @@ productSceneTest.action(/removeQuantity_(.+)/, async (ctx) => {
         await ctx.answerCbQuery('Failed to update the quantity.');
     }
 });
+productSceneTest.action(/remove_(.+)/, async (ctx) => {
+    const productId = ctx.match[1];
+
+    try {
+        const userId = ctx.from.id;
+        const updatedCart = await updateCartItemQuantity(userId, productId, -1);
+        const productData = await Product.findById(productId).populate("category");
+        const productArg = { ...productData.toObject(), quantity: updatedCart.items.find(item => item.product.equals(productId)).quantity };
+        if (productArg.quantity === 0) {
+            await ctx.answerCbQuery(`You have removed ${productArg.name} of product from your cart.`);
+            await removeItemFromCart(userId, productId)
+        }
+        sendProduct(ctx, productId, productArg);
+        await ctx.answerCbQuery(`You have removed ${productArg.quantity} of product ${productArg.name} from your cart.`);
+    } catch (error) {
+        console.error('Error handling removeQuantity action:', error);
+        await ctx.answerCbQuery('Failed to update the quantity.');
+    }
+});
 
 
 async function sendPage(ctx) {
     if (ctx.session.cleanUpState) {
         ctx.session.cleanUpState.forEach(async (message) => {
-            if (message?.type === 'product' || message?.type === 'pageNavigation' || message?.type === 'home') {
+            if (message?.type === 'product' || message?.type === 'pageNavigation' || message?.type === 'productKeyboard'|| message?.type === 'home'||message?.type === 'first') {
                 await ctx.telegram.deleteMessage(ctx.chat.id, message.id).catch((e) => ctx.reply(e.message));
 
             }
         });
     }
-    ctx.session.cleanUpState = [...ctx.session.cleanUpState]
+    ctx.session.cleanUpState = []
+    let replyText = `You are now viewing our products.`; 
+    const category = ctx.scene.state.category;
+    const product = ctx.scene.state.product;
+    const sortBy = ctx.scene.state.sortBy;
+    if (category && category.name) {
+        replyText = `You are now viewing our ${category.name} products.`;
+    } else if (sortBy) {
+        replyText = `You are now viewing our products sorted by ${sortBy}.`;
+    }
+    const prodcutKeuboard = await ctx.reply(
+        replyText,
+        Markup.keyboard([
+            ['Home', 'Checkout'],
+
+        ]).resize(),
+    );
+    await ctx.session.cleanUpState.push({ id: prodcutKeuboard.message_id, type: 'productKeyboard' })
+   
     try {
-        const response = await getProducts(ctx, pageSize)
+        const response = await getProducts(ctx, {pageSize})
         const products = JSON.parse(response);
         if (!products || !products.products || !Array.isArray(products.products)) {
             console.error('Error: Unable to fetch valid products data from the response.');
             console.log('Response:', products);
         } else {
-            if(products.products.length==0)
+            if(products.products.length===0)
             {
                 if (ctx.session.cleanUpState) {
                     ctx.session.cleanUpState.forEach(async (message) => {
@@ -328,7 +393,14 @@ async function sendPage(ctx) {
                         }
                     });
                 }
-                return ctx.reply("there is no product")
+                const noprodut=await ctx.reply("There is no product ☹️",Markup.inlineKeyboard([
+                   Markup.button.callback('Go Back','Home')
+                ]))
+                 await ctx.session.cleanUpState.push({
+                    id: noprodut.message_id,
+                    type: 'product'  
+                })
+                return;
             }
             const productsData = products.products;
             console.log("Product data:", productsData);
@@ -355,6 +427,7 @@ async function sendPage(ctx) {
 productSceneTest.leave(async (ctx) => {
     console.log("ctx.session.cleanUpState =>", ctx.session.cleanUpState)
     try {
+        ctx.session.product=[]
         if (ctx.session.cleanUpState) {
             ctx.session.cleanUpState.forEach(async (message) => {
                 console.log("%c called deleteing when its leave", "color: red;")
@@ -396,9 +469,9 @@ async function sendPageNavigation(ctx) {
     if (ctx.session.totalNumberProducts > perPage && ctx.session.currentPage === 1) {
         buttons = [pageSize, nextButton];
     }
-    // else if (ctx.session.totalNumberProducts <= perPage) {
-    //     buttons = [Markup.button.callback('No More Product', 'no')]
-    // }
+    else if (ctx.session.totalNumberProducts <= perPage && ctx.session.currentPage === 1) {
+        buttons = [Markup.button.callback('No More Product', 'no')]
+    }
 
     else if (ctx.session.totalNumberProducts >= perPage && ctx.session.currentPage === totalPages) {
         buttons = [previousButton, pageSize];

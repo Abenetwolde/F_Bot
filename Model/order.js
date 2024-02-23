@@ -59,9 +59,9 @@ const orderSchema = new mongoose.Schema({
     },
     orderStatus: {
         type: String,
-        enum: ["pending", "completed"],
-        default: "pending",
-    },
+        enum: ['pending', 'completed','cancelled','delivered'],
+        default: 'pending',
+      },
     orderfromtelegram:{
         type : Boolean ,
         default : false

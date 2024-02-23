@@ -1,7 +1,7 @@
 
 const { Telegraf, Markup, InputFile, Scene, session, WizardScene, Scenes } = require('telegraf');
 const { i18next } = require('telegraf-i18next');
-const { t } = require('telegraf-i18next')
+
 const { reply } = require('telegraf-i18next')
 const { Redis } = require("@telegraf/session/redis");
 const http = require('http');
@@ -9,7 +9,8 @@ const LocalSession = require('telegraf-session-local');
 const axios = require('axios');
 const fs = require('fs').promises;
 require('dotenv').config();
-const { homeScene, productSceneTest, cart, informationCash,searchProduct,myOrderScene,addressOnline, selectePaymentType, noteScene, paymentScene } = require('./Scenes/index.js');
+const { t, match } = require('telegraf-i18next');
+const { homeScene, productSceneTest, cart, informationCash, searchProduct, myOrderScene, addressOnline, selectePaymentType, noteScene, paymentScene, adminBaseScene ,channelHandeler} = require('./Scenes/index.js');
 const { checkUserToken } = require('./Utils/checkUserToken');
 const { Mongo } = require("@telegraf/session/mongodb");
 const { MongoClient } = require('mongodb');
@@ -21,24 +22,25 @@ const bot = new Telegraf("6372866851:AAE3TheUZ4csxKrNjVK3MLppQuDnbw2vdaM", {
 require("dotenv").config();
 const connectDatabase = require('./config/database.js');
 const { getSingleProduct } = require('./Database/productcontroller.js');
+const User = require('./Model/user.js');
 
 connectDatabase()
 bot.use(i18next({
   debug: true,
   lng: 'en',
   fallbackLng: 'en',
-  supportedLngs: ['en', 'ru'],
+  supportedLngs: ['en', 'am'],
   resources: {
     en: {
       translation: require('./locales/en.json')
     },
-    ru: {
-      translation: require('./locales/ru.json')
+    am: {
+      translation: require('./locales/am.json')
     }
   }
 }));
 const { Stage } = Scenes;
-const stage = new Stage([homeScene, searchProduct, productSceneTest, cart,myOrderScene, selectePaymentType,addressOnline,informationCash, noteScene, paymentScene/* ,productScene,latestScene,popularScene */])
+const stage = new Stage([homeScene, channelHandeler,searchProduct, productSceneTest, cart, myOrderScene, selectePaymentType, addressOnline, informationCash, noteScene, paymentScene, adminBaseScene/* ,productScene,latestScene,popularScene */])
 
 
 // bot.use(session({ store }));
@@ -82,12 +84,12 @@ mongoClient.connect()
 
     bot.use(session({ store, getSessionKey: (ctx) => ctx.from?.id.toString(), }));
 
-    
+
     bot.use((ctx, next) => {
-      if (!ctx.session) {
-        ctx.session = {}; 
-      }
-      if (ctx.session.locale) {
+      // if (!ctx.session) {
+      //   ctx.session = {};
+      // }
+      if (ctx.session?.locale) {
         ctx.i18next.changeLanguage(ctx.session.locale);
       }
       return next();
@@ -107,9 +109,32 @@ mongoClient.connect()
       });
     })
 
-    
-    // Apply the startMiddleware to all scenes
+  //   const checkLanguageMiddleware = async (ctx, next) => {
+  //     // Check if the user came from a channel post
+  //     const startCommand = ctx.message.text.split(' ');
+  //     if (startCommand.length === 2 && startCommand[1].startsWith('chat_')) {
+  //         const questionId = startCommand[1].replace('chat_', '');
+  //         console.log("id from search scene MIDDLEWARE:", questionId);
   
+  //         // Check if language is selected
+  //         if (!ctx.session.locale) {
+  //             // Prompt the user to choose a language
+  //             const message = await ctx.reply('Please choose your language', Markup.inlineKeyboard([
+  //                 Markup.button.callback('English', 'set_lang_channel:en'),
+  //                 Markup.button.callback('አማርኛ', 'set_lang_channel:am')
+  //             ]));
+  //             ctx.session.languageMessageId = message.message_id;
+  //             return; // Stop further execution until the user selects a language
+  //         }
+  //     }
+  //     // Language is selected or not applicable, proceed to the next middleware or handler
+  //     await next();
+  // };
+  
+  // // Apply the middleware to the bot command
+  // bot.start(checkLanguageMiddleware);
+  //   // Apply the startMiddleware to all scenes
+
     const fakeDatabase = {
       users: {},
     };
@@ -158,27 +183,34 @@ mongoClient.connect()
 
     bot.start(async (ctx) => {
       console.log("ctx.from.............", ctx.from)
-      console.log("ctx.session.locale",ctx.session.locale)
+      console.log("ctx.session.locale", ctx.session.locale)
       const startCommand = ctx.message.text.split(' ');
       if (startCommand.length === 2 && startCommand[1].startsWith('chat_')) {
         const questionId = startCommand[1].replace('chat_', '');
         console.log("id from search scene", questionId)
-        try {
 
-          const response = await getSingleProduct(questionId);
-          const product = JSON.stringify(response)
-        
-          if (product) {
-            // product.quantity = typeof product.quantity === 'number' ? product.quantity : 0;
-            const singleP = await JSON.parse(product)
-            // Update the quantity based on the action
-            await ctx.scene.enter('product', { product: singleP });
-         
-          } else {
-            console.error('Product not found.');
-            // Handle the case when the product is not found
-          }
+        console.log("if the user is select the langunage", ctx.session.locale)
+        try {
+         if(!ctx.session.locale)
+         {
+          return ctx.scene.enter("channelHandeler",{ pid: questionId })
+         }
       
+            const response = await getSingleProduct(questionId);
+            const product = JSON.stringify(response)
+
+            if (product) {
+              // product.quantity = typeof product.quantity === 'number' ? product.quantity : 0;
+              const singleP = await JSON.parse(product)
+              // Update the quantity based on the action
+              await ctx.scene.enter('product', { product: singleP });
+
+            } else {
+              console.error('Product not found.');
+              // Handle the case when the product is not found
+            }
+          
+
         } catch (error) {
           console.error('Error handling quantity action:', error);
         }
@@ -202,7 +234,7 @@ mongoClient.connect()
         if (!ctx.session.locale) {
           const message = await ctx.reply('Please choose your language', Markup.inlineKeyboard([
             Markup.button.callback('English', 'set_lang:en'),
-            Markup.button.callback('አማርኛ', 'set_lang:ru')
+            Markup.button.callback('አማርኛ', 'set_lang:am')
           ]))
           ctx.session.languageMessageId = message.message_id;
           const userToken = await checkUserToken(`${ctx.from.id}`, ctx)
@@ -216,7 +248,7 @@ mongoClient.connect()
                 last_name: ctx.from.last_name,
                 username: ctx.from.username || null,
                 is_bot: ctx.from.is_bot || false,
-                language:ctx.session.locale
+                language: ctx.session.locale
               });
 
               console.log("response.data", response)
@@ -245,7 +277,7 @@ mongoClient.connect()
                 last_name: ctx.from.last_name,
                 username: ctx.from.username || null,
                 is_bot: ctx.from.is_bot || false,
-                language:ctx.session.locale
+                language: ctx.session.locale
               });
               console.log("response.data", response)
 
@@ -262,12 +294,40 @@ mongoClient.connect()
             }
           }
           // Whether the user was just registered or is already registered, enter the home scene.
-           await ctx.scene.enter('homeScene');
+          await ctx.scene.enter('homeScene');
         }
       }
       //  ctx.replyWithPhoto("https://foodapi-mlp3.onrender.com//f94f106e-5419-48ab-80c2-bd6a39b5cc96.jpg")
-// 
-    }); 
+      // 
+    });
+    bot.command('changelanguage', async (ctx) => {
+      try {
+        const message = await ctx.reply('Please choose your language', Markup.inlineKeyboard([
+          Markup.button.callback('English', 'set_lang:en'),
+          Markup.button.callback('አማርኛ', 'set_lang:am')
+        ]))
+        ctx.session.languageMessageId = message.message_id;
+
+
+      } catch (error) {
+        console.log(error)
+      }
+
+    });
+    bot.command('search', async (ctx) => {
+      await ctx.scene.enter("searchProduct")
+    })
+    
+    bot.command('cart', async (ctx) => {
+      await ctx.scene.enter("cart")
+    })
+    bot.command('order', async (ctx) => {
+      await ctx.scene.enter("myOrderScene")
+    })
+    bot.command('admin', async (ctx) => {
+      await ctx.scene.enter("adminBaseScene")
+    })
+
     bot.action(/set_lang:(.+)/, async (ctx) => {
       if (!ctx.session) {
         ctx.session = {}; // Initialize session if not exists
@@ -285,8 +345,53 @@ mongoClient.connect()
       } else {
         console.error(updateResult.message);
       }
-      await ctx.scene.enter('homeScene');;
+      if (ctx.scene) {
+        await ctx.scene.enter('homeScene');
+      } else {
+        console.error('ctx.scene is not available.');
+      }
     });
+    bot.action(/set_lang_channel:(.+)/, async (ctx) => {
+      if (!ctx.session) {
+        ctx.session = {}; // Initialize session if not exists
+      }
+      ctx.session.locale = ctx.match[1];
+
+      ctx.i18next.changeLanguage(ctx.session.locale);
+      if (ctx.session.languageMessageId) {
+        await ctx.telegram.deleteMessage(ctx.chat.id, ctx.session.languageMessageId);
+      }
+      const updateResult = await updateUserLanguage(ctx.from.id, ctx.session.locale);
+
+      if (updateResult.success) {
+        console.log(updateResult.message);
+      } else {
+        console.error(updateResult.message);
+      }
+      const startCommand = ctx.callbackQuery.message.text.split(' ');
+      console.log("start cpmmand",startCommand)
+      if (startCommand.length === 2 && startCommand[1].startsWith('chat_')) {
+          const questionId = startCommand[1].replace('chat_', '');
+          console.log("action language:", questionId);
+  
+          try {
+              const response = await getSingleProduct(questionId);
+              const product = JSON.stringify(response);
+  
+              if (product) {
+                  const singleP = await JSON.parse(product);
+                  await ctx.scene.enter('product', { product: singleP });
+              } else {
+                  console.error('Product not found.');
+                  // Handle the case when the product is not found
+              }
+          } catch (error) {
+              console.error('Error handling quantity action:', error);
+          }
+      }
+    });
+
+
   })
 
 bot.on("pre_checkout_query", async (ctx) => {
@@ -310,8 +415,13 @@ bot.telegram.getWebhookInfo().then(info => {
 // bot.use(session({ defaultSession: () => ({ locale: 'en' }) }))
 
 bot.telegram.setMyCommands([
-  { command: 'start', description: 'Start' },
+  { command: 'start', description: 'Start The Bot' },
+  { command: 'search', description: 'Search Foods' },
+  { command: 'cart', description: 'Go to Cart' },
+  { command: 'order', description: 'Go to My Orders' },
   { command: 'changelanguage', description: 'Language' },
+  { command: 'admin', description: 'Admin 📊' }
+
   // { command: 'location', description: 'Location' }
 ]);
 
@@ -333,11 +443,6 @@ bot.command('mariya', async (ctx) => {
 
 
 
-bot.command('changelanguage', async (ctx) => {
-  let language = ctx.session?.locale == "en" ? "ru" : "en";
-  ctx.i18next.changeLanguage(language);
-  return ctx.reply(ctx.i18next.t('changeLanguage'));
-});
 const storeLocation = {
   latitude: 8.987376259110306,// Replace with the actual latitude of your store
   longitude: 38.78894603158134, // Replace with the actual longitude of your store
@@ -492,7 +597,7 @@ process.once("SIGTERM", () => bot.stop("SIGTERM"))
 //   },
 // })
 const launch = async () => {
-   try {
+  try {
     await bot.launch({
       dropPendingUpdates: true,
       polling: {
@@ -518,7 +623,7 @@ const launch = async () => {
   }
 };
 try {
- 
+
 
   // bot.launch({
   //   webhook: {
@@ -538,7 +643,7 @@ try {
   new Promise((resolve) => setTimeout(resolve, 5000));
 
 
- 
+
 }
 launch();
 

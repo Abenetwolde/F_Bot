@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const LanguageEnum = {
   EN: 'en',
-  RU: 'ru',
+  AM: 'am',
 };
 
 const userSchema = new mongoose.Schema({
@@ -29,8 +29,14 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    // default: 'User',
-    // required: [true, 'Role is required'],
+    default: 'USER',
+    required: [true, 'Role is required'],
+  },
+  from: {
+    type: String,
+    default: 'BOT',
+    enum: ['BOT', 'CHANNEL'],
+    required: [true, 'status is required'],
   },
   language: {
     type: String,
@@ -40,6 +46,7 @@ const userSchema = new mongoose.Schema({
   token: {
     type: String,
   },
+  createdAt: { type: Date, default: Date.now },
 });
 
 module.exports = mongoose.model('Users', userSchema);

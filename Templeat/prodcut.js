@@ -7,7 +7,7 @@ const { ObjectId } = require('mongodb');
 const { getCart } = require('../Database/cartController');
 
 module.exports = {
-    displyProdcut: async function (ctx, producs, isSearch = false) {
+    displyProdcut: async function (ctx, producs, viewmore) {
         const userId = ctx.from.id
         const cart = await getCart(userId);
         for (const product of producs) {
@@ -24,7 +24,7 @@ module.exports = {
 
             // ctx.session.availableSizes[productId] = ['37', '46', '48', '67'];
             ctx.session.currentImageIndex[productId] = 0;
-            ctx.session.viewMore[productId] = false;
+            ctx.session.viewMore[productId] = viewmore?true:false;
             const messageInfo = await module.exports.sendProduct(ctx, productId, product);
 
             ctx.session.cleanUpState.push(messageInfo);
@@ -40,19 +40,20 @@ module.exports = {
             const { name, description, price, available, warranty, category, highlights, images, createdAt } = product;
 
             const formattedHighlights = highlights.map((highlight) => `${highlight}`).join(',');
-          const formattedprice= product.quantity!==0?
+          const formattedprice= product.quantity!==0&& ctx.session.viewMore[productId]?
           `  
           . 
           . 
            ${product.quantity}x${product.price}= ${product.quantity*product.price} ETB`:''
             
             return `
-         ${category.icon} ${name} ${category.icon}
-         ${description}
-         💴 ${price} ETB
-         #${category.name} ${category.icon}
-         ${formattedHighlights}
-         ${formattedprice}
+         ${category.icon} ${name} ${category.icon}\n
+         ${description}\n
+         💴 ${price} ETB\n
+         #${category.name} ${category.icon}\n
+         ${formattedHighlights}\n
+         ${formattedprice}\n
+        ${`Images: ${ctx.session.currentImageIndex[productId]+1}/${images.length}`}\n
         
         
             `;
@@ -87,12 +88,21 @@ module.exports = {
                 const currency = product.currency;
 
                 let keyboard = [];
-                if (quantity == 0) {
+                let check= ctx.session.currentImageIndex[productId] < product.images.length
+                console.log("check...................",check)
+                if (quantity == 0&&product?.images.length>1) {
                     keyboard.push([
-                        Markup.button.callback('⬅️', `previous_${productId}`),
+                       Markup.button.callback('⬅️', `previous_${productId}`),
                         viewMore ? Markup.button.callback('View Less', `viewLess_${productId}`) : Markup.button.callback('View More', `viewMore_${productId}`),
-                        Markup.button.callback('➡️', `next_${productId}`)
+                       Markup.button.callback('➡️', `next_${productId}`)
                     ]);
+                }else if(quantity > 0&&product?.images.length==1)
+                {
+                    keyboard.push([
+                        // Markup.button.callback('⬅️', `previous_${productId}`),
+                         viewMore ? Markup.button.callback('View Less', `viewLess_${productId}`) : Markup.button.callback('View More', `viewMore_${productId}`),
+                        // Markup.button.callback('➡️', `next_${productId}`)
+                     ]);
                 }
 
                 if (quantity > 0) {
@@ -130,6 +140,7 @@ module.exports = {
         }
 
         else {
+            
             const resizeimage = image
             console.log("imagebuferx............", resizeimage)
             const response = await axios.get(resizeimage, { responseType: 'arraybuffer' });
@@ -168,6 +179,14 @@ module.exports = {
                             Markup.button.callback('-', `removeQuantity_${productId}`),
                             Markup.button.callback(`${product.quantity}`, `quantity_${productId}`),
                             Markup.button.callback('+', `addQuantity_${productId}`)
+                        ],
+                        [
+                            
+                            Markup.button.callback('Remove', `remove_${productId}`),
+                         
+                        ],
+                        [
+                            Markup.button.callback('Buy', `buy_${productId}`)
                         ]
                     ] : (ctx.session.viewMore[productId] ? [
                         [

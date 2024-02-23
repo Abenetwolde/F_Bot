@@ -24,7 +24,7 @@ const informationCash = new Scenes.WizardScene(
       const phoneNumber = ctx.message.contact.phone_number;
       console.log("validatePhoneNumber(phoneNumber)",validatePhoneNumber(phoneNumber))
     
-      ctx.session.orderInformation = { ...ctx.session.orderInformation, phoneNumber };
+      ctx.session.orderInformation = { ...ctx.session.orderInformation, phoneNo:phoneNumber };
       console.log(" ctx.session.orderInformation.phoneNumber)", ctx.session.orderInformation.phoneNumber)
       // if( ctx.session.orderInformation.phoneNumber) return ctx.wizard.next()
 

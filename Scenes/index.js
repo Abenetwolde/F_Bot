@@ -8,6 +8,8 @@ const { paymentScene } = require("./payment");
 const { informationCash } = require('./informationChash');
 const { addressOnline } = require('./addressOnline');
 const myOrderScene = require('./myorder');
+const adminBaseScene = require('./Admin/admin');
+const channelHandeler = require('./channelHandeler');
 
 module.exports = {
     homeScene,
@@ -19,5 +21,8 @@ module.exports = {
     paymentScene,
     informationCash,
     addressOnline,
-    myOrderScene
+    myOrderScene,
+    adminBaseScene,
+    channelHandeler
+    
 }

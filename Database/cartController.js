@@ -104,19 +104,20 @@ async function updateCartItemQuantity(userId, productId, quantity) {
   
 
   
-async function removeItemFromCart(userId, productId) {
+async function removeItemFromCart(cartId) {
+  console.log("cartId",cartId)
     try {
-      const cart = await Cart.findOne({ user: userId });
+      const cart = await Cart.findByIdAndDelete(cartId);
   
       if (!cart) {
         throw new Error('Cart not found.');
       }
   
-      // Remove the item from the cart based on the productId
-      cart.items = cart.items.filter(item => !item.product.equals(productId));
+      // // Remove the item from the cart based on the productId
+      // cart.items = cart.items.filter(item => !item.product.equals(productId));
   
       // Save the updated cart
-      await cart.save();
+      // await cart.save();
 
   
       return cart;

@@ -146,7 +146,8 @@ exports.cancelOrder = async (orderId, userId) => {
     }
 
     // Remove the order
-    await Order.findByIdAndRemove(orderId);
+    // await Order.findByIdAndRemove(orderId);
+ await Order.findByIdAndUpdate({ _id: orderId }, { orderStatus: 'cancelled' });
 
     return { success: true, message: "Order canceled successfully." };
 } catch (error) {

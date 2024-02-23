@@ -20,7 +20,7 @@ cart.enter(async (ctx) => {
   const cart = await getCart(userId);
   
   if (cart) {
-    for (const item of cart.items) {
+    for (const item of cart?.items) {
       const cartMessageInfo = await sendCartProduct(ctx, item.product._id.toString(), item)
       console.log("cart message info......", cartMessageInfo)
       ctx.session.cleanUpState.push(cartMessageInfo)

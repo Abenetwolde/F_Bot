@@ -92,30 +92,38 @@ paymentScene.on("successful_payment", async (ctx) => {
             orderId:ctx.scene.state.orderId,
             phoneNo:payment.order_info.phone_number,
             paymentStatus:"completed",
-            orderStatus:"completed",
+            orderStatus:"pending",
+            location:ctx.session.orderInformation?.location
         }
 const updatedOrder=await updateOrder(orderupdate)
 // console.log("orderupdate",orderinfo)
-
+let summary = '';
+let totalPrice = 0;
+summary += `Order Details:`
 // const updatedOrder = await updateOrderStatus(ctx.scene.state.orderId, 'completed');
 // console.log('Order status updated successfully:', updatedOrder.orderItems);
 for (const orderItem of updatedOrder.orderItems) {
-    await ctx.reply(
-        `Order Details:
-                   Product: ${orderItem.product.name}
-                   Quantity: ${orderItem.quantity}
-                   Total Price: ${orderItem.quantity * orderItem.product.price} ETB
-                   Order ID: ${updatedOrder._id}`,
-    );
+
+    summary += `🛒 ${orderItem.product.name}: ${orderItem.quantity} x ${orderItem.product.price} = ${orderItem.quantity * orderItem.product.price} ETB\n`;
+    totalPrice += orderItem.quantity * orderItem.product.price ;
+    // await ctx.reply(
+    //     `Order Details:
+    //                Product: ${orderItem.product.name}
+    //                Quantity: ${orderItem.quantity}
+    //                Total Price: ${orderItem.quantity * orderItem.product.price} ETB
+    //                Order ID: ${updatedOrder._id}`,
+    // );
     
     await product.findByIdAndUpdate(orderItem.product._id, {
         $inc: {   orderQuantity: +orderItem.quantity }
     });
   }
+  summary += `\nTotal Price: <u>${totalPrice} ETB</u>`;
 
   // Send a separate message about the product
   await ctx.reply(`Thank you for your order! The product will be delivered to you soon.`);
-        
+  await ctx.replyWithHTML(summary),
+  ctx.session.orderInformation={}   
     } catch (error) {
         console.error('Error creating payment:', error);
         // Handle error
