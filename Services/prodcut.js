@@ -32,7 +32,7 @@ module.exports = {
         } catch (error) {
           throw new Error('Error fetching products from the database.');
         }
-      },
+      }, 
     // getProdcuts: async function (ctx, pageSize) {
     //    const category = ctx.scene.state?.category?.id;
     //     const sortBy = ctx.scene.state.sortBy;
